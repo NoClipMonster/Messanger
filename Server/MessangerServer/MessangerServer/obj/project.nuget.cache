@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "tMHhDRy+3hrt9mWkg7dE1+ko+i+n3tA5MV0f+AylaeEvhIXXfGHPd6vxHUq2F5jPT3YC5M9z3Puh4RAQQA77IA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\iaved\\Desktop\\Messanger\\Server\\MessangerServer\\MessangerServer\\MessangerServer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\iaved\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,5 @@
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net5.0\MessangerServer.csproj.AssemblyReference.cache
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net5.0\MessangerServer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net5.0\MessangerServer.AssemblyInfoInputs.cache
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net5.0\MessangerServer.AssemblyInfo.cs
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net5.0\MessangerServer.csproj.CoreCompileInputs.cache

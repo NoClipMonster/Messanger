@@ -1,0 +1,9 @@
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\bin\Release\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\bin\Release\Protocol.pdb
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\bin\Release\Newtonsoft.Json.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\bin\Release\Newtonsoft.Json.xml
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\obj\Release\Protocol.csproj.AssemblyReference.cache
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\obj\Release\Protocol.csproj.CoreCompileInputs.cache
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\obj\Release\Protocol.csproj.CopyComplete
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\obj\Release\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\Protocol\obj\Release\Protocol.pdb
