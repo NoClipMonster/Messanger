@@ -24,24 +24,24 @@ namespace MessangerClient
          class Client
         {
             NetworkStream stream;
-            bool streamBusy = false;
             TcpClient client;
            public Client()
             {
                 client = new("91.224.137.146", 8080);
                 stream = client.GetStream();
 
+
+                string name = "admin";
+
+                stream.Write(Encoding.UTF8.GetBytes(name, 0, name.Length));
+
+                byte[] message = Exchange("Привет");
+
+                stream.Write(message);
+
                 Thread checkForInput = new Thread(check);
                 checkForInput.Start();
 
-                string name = "admin";
-                streamBusy = true;
-                stream.Write(Encoding.UTF8.GetBytes(name, 0, name.Length));
-                streamBusy = false;
-                byte[] message = Exchange("Привет");
-                streamBusy = true;
-                stream.Write(message);
-                streamBusy = false;
             }
             public static byte[] Exchange(string outMessage)
             {
@@ -87,7 +87,7 @@ namespace MessangerClient
             {
                 do
                 {
-                    if (stream.DataAvailable&&!streamBusy)
+                    if (stream.DataAvailable)
                     {
                         Console.WriteLine("[CLIENT] " + "Получение данных");
 

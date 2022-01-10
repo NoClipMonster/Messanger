@@ -27,8 +27,8 @@ C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debu
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\MessangerServer.deps.json
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\MessangerServer.runtimeconfig.json
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\MessangerServer.dll
-C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\ref\MessangerServer.dll
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\MessangerServer.pdb
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\bin\Debug\net6.0\Newtonsoft.Json.dll
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net6.0\MessangerServer.csproj.CopyComplete
 C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net6.0\MessangerServer.genruntimeconfig.cache
+C:\Users\iaved\Desktop\Messanger\Server\MessangerServer\MessangerServer\obj\Debug\net6.0\refint\MessangerServer.dll

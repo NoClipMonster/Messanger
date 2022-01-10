@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -6,150 +7,246 @@ namespace MessangerServer
 {
     public class Server
     {
+        //TODO: Попробовать дать каждому пользователь по потоку
         static void Main()
         {
-            myServer server = new myServer("192.168.1.101", 8080);
+            MyServer server = new("192.168.1.101", 8080);
             server.Start();
-            List<TcpClient> clients = new List<TcpClient>();
+            Console.WriteLine("Введите Help для получения списка комманд");
         }
 
-        class myServer
+        class MyServer
         {
-            TcpListener server;
-            List<string> logins;
-            List<TcpClient> clients;
-            List<NetworkStream> streams;
-            public myServer(string IP, int port)
+            readonly TcpListener server;
+            readonly List<Client> Clients;
+            readonly BackgroundWorker waitForClients;
+            readonly BackgroundWorker waitForInput;
+            readonly BackgroundWorker checkForDisconection;
+
+            public MyServer(string IP, int port)
             {
                 IPAddress localAddr = IPAddress.Parse(IP);
-                server = new TcpListener(localAddr, port);
-                clients = new List<TcpClient>();
-                streams = new List<NetworkStream>();
-                logins = new List<string>();
-                
+                server = new(localAddr, port);
+                Clients = new();
+
+                waitForClients = new();
+                waitForInput = new();
+                checkForDisconection = new();
+
+                waitForClients.WorkerSupportsCancellation = true;
+                waitForInput.WorkerSupportsCancellation = true;
+                checkForDisconection.WorkerSupportsCancellation = true;
+
+                waitForClients.DoWork += WaitForClients_DoWork;
+                waitForInput.DoWork += WaitForInput_DoWork;
+                checkForDisconection.DoWork += CheckForDisconection_DoWork;
+
             }
+
+
+
+            void WaitForCommand()
+            {
+                while (true)
+                {
+                    string? command = Console.ReadLine();
+                    if (command == null)
+                        continue;
+
+                    switch (command.ToLower())
+                    {
+                        default:
+                            Console.WriteLine("[SERVER] " + "Такой команды нет");
+                            break;
+                        case "help":
+                            Console.WriteLine("[SERVER]\n" +
+                                "   Start\n" +
+                                "   Stop\n" +
+                                "   Restart\n" +
+                                "   Clients");
+                            break;
+                        case "stop":
+                            Stop();
+                            break;
+                        case "clients":
+                            if (Clients.Count == 0)
+                                Console.WriteLine("[SERVER] " + "Пусто");
+                            foreach (Client client in Clients)
+                                Console.WriteLine(String.Format("Клиент: {0}: IP: {1}", client.clientName, client.tcpClient.Client.RemoteEndPoint));
+                            break;
+                        case "start":
+                            Start();
+                            break;
+                        case "restart":
+                            Stop();
+                            Start();
+                            break;
+
+                    }
+                }
+            }
+
+            private void CheckForDisconection_DoWork(object? sender, DoWorkEventArgs e)
+            {
+                while (true)
+                {
+                    for (int i = 0; i < Clients.Count; i++)
+                    {
+                        if (waitForInput.CancellationPending)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
+                        //if (Clients[i].stream)
+                    }
+                }
+            }
+
+            private void WaitForInput_DoWork(object? sender, DoWorkEventArgs e)
+            {
+                while (!waitForInput.CancellationPending)
+                {
+                    for (int i = 0; i < Clients.Count; i++)
+                    {
+                        if (waitForInput.CancellationPending)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
+                        if (Clients[i] != null && Clients[i].stream != null)
+                            if (Clients[i].stream.DataAvailable)
+                            {
+                                try
+                                {
+                                    Console.WriteLine("[SERVER] " + "Получение данных");
+
+                                    byte[] am = new byte[4];
+
+                                    Clients[i].stream.Read(am, 0, 4);
+
+                                    byte[] myReadBuffer = new byte[int.Parse(Encoding.UTF8.GetString(am, 0, 4))];
+                                    Clients[i].stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+
+                                    Protocol protocol = new(myReadBuffer);
+
+                                    if (protocol.data != null)
+                                    {
+                                        if (protocol.data.closeConnection)
+                                        {
+                                            Console.WriteLine("[SERVER] " + "Клиент отключен: " + Clients[i].tcpClient.Client.RemoteEndPoint + " : " + Clients[i].clientName);
+                                            Clients[i].stream.Close();
+                                            Clients[i].tcpClient.Close();
+                                            Clients.RemoveAt(i);
+                                            if (i != 0)
+                                                i--;
+                                        }
+                                        else
+                                        {
+                                            Client? client = Clients.Find(x => x.clientName == protocol.data.targetLogin);
+                                            if (client != null)
+                                                client.stream.Write(protocol.SerializeToByte);
+                                        }
+
+                                    }
+
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("[ERROR] " + "WaitForInput: " + ex.Message);
+                                }
+                            }
+                    }
+
+                }
+                e.Cancel = true;
+
+            }
+
+            private void WaitForClients_DoWork(object? sender, DoWorkEventArgs e)
+            {
+                while (!waitForClients.CancellationPending)
+                {
+                    TcpClient? client = null;
+                    try
+                    {
+                        if (server.Pending())
+                            client = server.AcceptTcpClient();
+                        else
+                            continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[ERROR] " + "WaitForClients: " + ex.Message);
+                    }
+
+                    if (client != null)
+                    {
+                        Console.Write("[SERVER] " + "Клиент подключен: " + client.Client.RemoteEndPoint);
+                        byte[] login = new byte[16];
+
+                        int kount = client.GetStream().Read(login, 0, login.Length);
+                        Clients.Add(new Client(client, Encoding.UTF8.GetString(login, 0, kount)));
+                        Console.WriteLine(" : " + Clients[^1].clientName);
+
+                    }
+                }
+                e.Cancel = true;
+            }
+
+            #region Управление сервером
+            public void Stop()
+            {
+                waitForInput.CancelAsync();
+                waitForClients.CancelAsync();
+                foreach (Client client in Clients)
+                {
+                    try
+                    {
+                        Protocol protocol = new(new Protocol.Data { closeConnection = true, senderLogin = "server", targetLogin = client.clientName });
+                        client.stream.Write(protocol.SerializeToByte);
+                        client.stream.Close();
+                        client.tcpClient.Close();
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[ERROR] " + "Client: " + client.tcpClient.Client.RemoteEndPoint + "\nError: " + ex.Message.ToString());
+                    }
+                }
+
+                Clients.Clear();
+                server.Stop();
+                while (waitForClients.IsBusy || waitForInput.IsBusy)
+                {
+                    Console.WriteLine(".");
+                    Thread.Sleep(500);
+                }
+                Console.WriteLine("[SERVER] " + "Сервер остановлен");
+            }
+
             public void Start()
             {
                 server.Start();
                 Console.WriteLine("[SERVER] " + "Сервер запущен");
-                Thread waitForClients = new Thread(WaitForClients);
-                Thread inputStream = new Thread(InputStream);
-                waitForClients.Start();
-                inputStream.Start();
+                waitForClients.RunWorkerAsync();
+                waitForInput.RunWorkerAsync();
+                WaitForCommand();
             }
-            void WaitForClients()
-            {
-                
-                do
-                {
-                    TcpClient client;
-                    client = server.AcceptTcpClient();
-                    if (client != null)
-                    {
-                        Console.WriteLine("[SERVER] " + "Клиент подключен: "+client.Client.RemoteEndPoint);
-                        byte[] login = new byte[16];
-                       
-                        int kount = client.GetStream().Read(login, 0, login.Length);
-                        logins.Add(Encoding.UTF8.GetString(login,0,kount));
-                        clients.Add(client);
-                        streams.Add(client.GetStream());
-                    }
-                }
-                while (true);
-            }
-            void InputStream()
-            {
-                do
-                {
-                    Array bufferedStreams = streams.ToArray();
-                    foreach (NetworkStream stream in bufferedStreams)
-                    {
-                        if (stream.DataAvailable)
-                        {
-                            Console.WriteLine("[SERVER] " + "Получение данных");
-
-                            byte[] am = new byte[4];
-                            StringBuilder myCompleteMessage = new();
-
-                            stream.Read(am, 0,4);
-                            
-                            byte[] myReadBuffer = new byte[int.Parse(Encoding.UTF8.GetString(am,0,4))];
-                            stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-
-                            stream.Write(new byte[] {48}, 0, 1);
-                            myCompleteMessage.AppendFormat("{0}", Encoding.UTF8.GetString(myReadBuffer, 0, myReadBuffer.Length));
-
-                            Console.WriteLine(myCompleteMessage.ToString());
-                            Protocol protocol = new();
-                            protocol.Deserialize(myCompleteMessage.ToString());
-
-                            if (protocol.data?.targetLogin != null)
-                                streams[logins.IndexOf(protocol.data.targetLogin)].Write(protocol.SerializeToByte);
-                        }
-                    }
-
-                }
-                while (true);
-            }
+            #endregion
         }
-       
-        void AwaitForNewUser()
+
+    }
+    class Client
+    {
+        public Client(TcpClient tcpClient, string clientName)
         {
-
-            /* while (true)
-             {
-                 try
-                 {
-                     // Подключение клиента
-
-                     NetworkStream stream = client.GetStream();
-                     // Обмен данными
-                     try
-                     {
-                         if (stream.CanRead)
-                         {
-                             byte[] myReadBuffer = new byte[1024];
-                             StringBuilder myCompleteMessage = new();
-                             int numberOfBytesRead = 0;
-                             do
-                             {
-                                 numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-                                 myCompleteMessage.AppendFormat("{0}", Encoding.UTF8.GetString(myReadBuffer, 0, numberOfBytesRead));
-                             }
-                             while (stream.DataAvailable);
-                             string time = myCompleteMessage.ToString();
-
-                             Protocol.Data? data = JsonConvert.DeserializeObject<Protocol.Data>(myCompleteMessage.ToString());
-                             if (data != null)
-                             {
-                                 Console.WriteLine(String.Format("[SERVER] Сообщение от пользователя '{0}':{1}\n" +
-                                     "[SERVER] Размер: {2}\n" +
-                                     "[SERVER] Время Клиент-Сервер: {3}\n" +
-                                     "[SERVER] Структура: {4}",
-                                     data.senderLogin, data.message,
-                                     myCompleteMessage.Length,
-                                     DateTime.Now - data.sendingTime,
-                                     myCompleteMessage.ToString()));
-
-                                 Byte[] responseData = Encoding.UTF8.GetBytes(myCompleteMessage.Length.ToString());
-                                 stream.Write(responseData, 0, responseData.Length);
-                             }
-
-                         }
-                     }
-                     finally
-                     {
-                         stream.Close();
-                         client.Close();
-                     }
-                 }
-                 catch
-                 {
-                     server.Stop();
-                     break;
-                 }
-             }*/
+            stream = tcpClient.GetStream();
+            this.clientName = clientName;
+            this.tcpClient = tcpClient;
         }
+        public NetworkStream stream;
+        public string clientName;
+        public TcpClient tcpClient;
     }
 }
 
