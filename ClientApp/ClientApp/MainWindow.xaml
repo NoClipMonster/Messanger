@@ -5,28 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="364" Width="524" Closing="Window_Closing">
+        Title="MainWindow" Height="314" Width="454" Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="190"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Rectangle Name="ConnectedIndicator" HorizontalAlignment="Left" VerticalAlignment="Top"  Width="26" Height="25" Margin="24,10,0,0" Stroke="Black"  Fill="AliceBlue" RadiusX="5" RadiusY="5"/>
-        <Button x:Name="StartClientBT" Content="Start Client" HorizontalAlignment="Left" Margin="65,10,0,0" VerticalAlignment="Top" Height="25" Width="95" Click="StartClient_Click" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+        <Button x:Name="StartClientBT" Content="Start Client" HorizontalAlignment="Left" Margin="65,10,0,0" VerticalAlignment="Top" Height="25" Width="95" Click="StartClient_Click" ScrollViewer.HorizontalScrollBarVisibility="Auto" Grid.ColumnSpan="2"/>
 
-        <RichTextBox x:Name="DialogWindow" Margin="10,10,30,14" Grid.Column="1" AcceptsReturn="False" FontFamily="Arial" IsReadOnly="True">
+        <RichTextBox x:Name="DialogWindow" Margin="10,10,30,14" Grid.Column="2" AcceptsReturn="False" FontFamily="Arial" IsReadOnly="True">
             <FlowDocument>
+
             </FlowDocument>
         </RichTextBox>
-        <Grid x:Name="messageGrid" Margin="0,61,0,0" HorizontalAlignment="Center" Width="190" Height="118" VerticalAlignment="Top" Visibility="Hidden">
-            <Button x:Name="SendBT" Content="Send message" HorizontalAlignment="Left" Margin="65,95,0,0" VerticalAlignment="Top" Width="120" Click="SendBT_Click" Height="20"/>
+        <Grid x:Name="messageGrid" Margin="0,38,0,0" HorizontalAlignment="Center" Width="190" Height="250" VerticalAlignment="Top" Visibility="Hidden">
+            <Button x:Name="SendBT" Content="Send message" HorizontalAlignment="Left" Margin="65,118,0,0" VerticalAlignment="Top" Width="120" Click="SendBT_Click" Height="20"/>
             <TextBox x:Name="MessageTB" HorizontalAlignment="Left" Margin="65,28,0,0" TextWrapping="Wrap" Text="SomeText" VerticalAlignment="Top" Width="120" Height="62"/>
             <TextBox x:Name="TargetTB" HorizontalAlignment="Left" Margin="65,5,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
             <Label  Content="Target" HorizontalAlignment="Left" Margin="18,1,0,0" VerticalAlignment="Top" Height="26" Width="42"/>
             <Label Content="Message" HorizontalAlignment="Left" Margin="7,25,0,0" VerticalAlignment="Top" Height="29" Width="58"/>
+            <TextBox x:Name="PathBox" HorizontalAlignment="Left" Margin="65,95,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" IsReadOnly="True" MouseDoubleClick="PathBox_MouseDoubleClick" MaxLines="1"/>
+            <Label Content="Image path" HorizontalAlignment="Left" Margin="-2,90,0,0" VerticalAlignment="Top" Height="29" Width="70"/>
+            <Image x:Name="ImageContainer" HorizontalAlignment="Left" Height="100" Margin="10,143,0,0" VerticalAlignment="Top" Width="175" Stretch="Uniform"/>
         </Grid>
-        <TextBox x:Name="SenderTB" HorizontalAlignment="Left" Margin="65,43,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
-        <Label  Content="Sender" HorizontalAlignment="Left" Margin="14,39,0,0" VerticalAlignment="Top" Height="26" Width="46"/>
+        <Grid  x:Name="loginGrid" Margin="5,40,0,0" HorizontalAlignment="Left" Width="185" Height="49" VerticalAlignment="Top" Visibility="Visible">
+            <TextBox x:Name="LoginTB" HorizontalAlignment="Left" Margin="60,6,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
+            <TextBox x:Name="PasswordTB" HorizontalAlignment="Left" Margin="60,27,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
+            <Label  Content="Password" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="0,23,0,0" VerticalAlignment="Top" Height="26" Width="60"/>
+            <Label  Content="Login" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="7,2,0,0" VerticalAlignment="Top" Height="26" Width="46"/>
+
+        </Grid>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="65,259,0,0" VerticalAlignment="Top" Click="Button_Click"/>
     </Grid>
 </Window>
 

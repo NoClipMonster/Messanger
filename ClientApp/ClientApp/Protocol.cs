@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace ClientApp
@@ -11,21 +10,19 @@ namespace ClientApp
 
         public Protocol(byte[] innerData)
         {
-            data = new();
             Deserialize(innerData);
         }
         public Protocol(string innerData)
         {
-            data = new();
             Deserialize(innerData);
         }
 
         public Protocol(Data innerData) => data = innerData;
 
+
         [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
         public class Data
         {
-
             [JsonRequired]
             public string? senderLogin;
 
@@ -33,37 +30,84 @@ namespace ClientApp
             public string? targetLogin;
 
             [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-            public DateTime sendingTime = DateTime.MinValue;
+            public DateTime sendingTime;
 
             public string? message;
 
             [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-            public bool closeConnection = false;
+            public bool closeConnection;
+
+            [JsonIgnore]
+            public byte[]? SomeObject
+            {
+                set
+                {
+                    if (value != null)
+                    {
+                        someObject = value;
+                        sizeOfObject = someObject.Length;
+                    }
+                }
+                get => someObject;
+            }
+            [JsonIgnore]
+            byte[]? someObject;
+
+            public int? sizeOfObject;
 
         }
+
+
         public byte[] SerializeToByte
         {
             get
             {
-                List<byte> bytes = new();
-                bytes.AddRange(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)));
-                List<byte> lenght = new();
-                lenght.AddRange(Encoding.UTF8.GetBytes(bytes.Count.ToString()));
-                while (lenght.Count < 4)
-                    lenght.Insert(0, 48);
-                bytes.InsertRange(0, lenght);
-                return bytes.ToArray();
+                if (data == null)
+                    return Array.Empty<byte>();
+                byte[] byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+                byte[] size = new byte[3];
+                int objLenght = data.sizeOfObject??0;
+                for (int i = size.Length - 1; i >= 0; i--)
+                {
+                    size[i] = (byte)((byteData.Length % Math.Pow(256, size.Length - i)) / Math.Pow(256, size.Length - (i + 1)));
+                }
+
+                byte[] message = new byte[size.Length + byteData.Length + objLenght];
+                size.CopyTo(message, 0);
+                byteData.CopyTo(message, size.Length);
+                if (data != null && data.SomeObject != null)
+                {
+                    data.SomeObject.CopyTo(message, size.Length + byteData.Length);
+                }
+                return message;
             }
         }
+
         public void Deserialize(string innerData)
         {
             if (innerData != null)
+            {
+                try
+                {
+                data = new();
                 data = JsonConvert.DeserializeObject<Data>(innerData);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+
+            }
         }
+
         public void Deserialize(byte[] innerData)
         {
+
             if (innerData != null)
-                data = JsonConvert.DeserializeObject<Data>(Encoding.UTF8.GetString(innerData));
+            {
+                Deserialize(Encoding.UTF8.GetString(innerData));
+            }
+
         }
     }
 }
