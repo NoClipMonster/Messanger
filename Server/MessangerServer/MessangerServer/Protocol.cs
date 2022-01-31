@@ -44,15 +44,18 @@ namespace MessangerServer
                     if (value != null)
                     {
                         someObject = value;
-                        sizeOfObject = value.Length;
+                        sizeOfObject = someObject.Length;
                     }
                 }
                 get => someObject;
             }
+
             [JsonIgnore]
             byte[]? someObject;
 
             public int? sizeOfObject;
+
+            public string? nameOfObject;
 
         }
 
@@ -91,7 +94,7 @@ namespace MessangerServer
                     data = new();
                     data = JsonConvert.DeserializeObject<Data>(innerData);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                 }
@@ -101,12 +104,11 @@ namespace MessangerServer
 
         public void Deserialize(byte[] innerData)
         {
-
             if (innerData != null)
             {
                 Deserialize(Encoding.UTF8.GetString(innerData));
             }
-
         }
+
     }
 }

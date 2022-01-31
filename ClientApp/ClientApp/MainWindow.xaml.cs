@@ -8,7 +8,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace ClientApp
 {
@@ -54,7 +53,7 @@ namespace ClientApp
                     {
                         InsertMessage(protocol, false);
                     }
-
+                    //protocol.Dispose();
                 }
             }
         }
@@ -79,26 +78,22 @@ namespace ClientApp
                 ((Paragraph)DialogWindow.Document.Blocks.LastBlock).Inlines.Add(text.Insert(0, "\n"));
             else
                 DialogWindow.Document.Blocks.Add(new Paragraph(new Run(text)) { TextAlignment = textAlignment });
-            if (!user && protocol.data.SomeObject != null)
+            if (!user && protocol.data.SomeObject != null && protocol.data.nameOfObject != null)
             {
-                SaveFileDialog saveFileDialog = new();
-                saveFileDialog.ShowDialog();
-                if (saveFileDialog.FileName != "")
+                try
                 {
-                    try
-                    {
-                        File.WriteAllBytes(saveFileDialog.FileName, protocol.data.SomeObject);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Не удалось сохранить файл. Ошибка:" + ex.Message);
-                        return;
-                    }
-                    ImageSource image = new BitmapImage(new Uri(saveFileDialog.FileName, UriKind.Absolute));
-                    ImageContainer.Source = image;
+                    if (!Directory.Exists("Files"))
+                        Directory.CreateDirectory("Files");
+                    File.WriteAllBytes("Files/"+protocol.data.nameOfObject, protocol.data.SomeObject);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Не удалось сохранить файл. Ошибка:" + ex.Message);
+                    return;
                 }
             }
             DialogWindow.ScrollToEnd();
+            //protocol.Dispose();
         }
 
         private void SendBT_Click(object sender, RoutedEventArgs e)
@@ -114,11 +109,12 @@ namespace ClientApp
                 sendingTime = DateTime.Now,
                 targetLogin = TargetTB.Text,
                 message = MessageTB.Text,
-                SomeObject = ImageContainer.Source != null ? File.ReadAllBytes(PathBox.Text) : null,
+                SomeObject = PathBox.Text != "" ? File.ReadAllBytes(PathBox.Text) : null,
+                nameOfObject = PathBox.Text != "" ? new FileInfo(PathBox.Text).Name : null
             });
             InsertMessage(protocol, true);
-            ImageContainer.Source = null;
             client.Exchange(protocol.SerializeToByte);
+            //protocol.Dispose();
         }
 
         private void StartClient_Click(object sender, RoutedEventArgs e)
@@ -159,7 +155,7 @@ namespace ClientApp
             }
             else
             {
-                ImageContainer.Source = null;
+
                 StartClientBT.Content = "Start client";
                 messageGrid.Visibility = Visibility.Hidden;
                 loginGrid.Visibility = Visibility.Visible;
@@ -180,38 +176,15 @@ namespace ClientApp
             //TODO: Отправка нескольких файлов
             //TODO: Отмена отправки
             OpenFileDialog openFileDialog = new();
-            openFileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF";
             openFileDialog.ShowDialog();
 
             if (openFileDialog.FileName != "")
             {
                 PathBox.Text = openFileDialog.FileName;
-                ImageSource image = new BitmapImage(new Uri(openFileDialog.FileName, UriKind.Absolute));
-                ImageContainer.Source = image;
             }
-
+            
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] data = new byte[255 * 255 * 255];
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = (byte)i;
-                
-            }
-            Protocol protocol = new(new Protocol.Data()
-            {
-                senderLogin = LoginTB.Text,
-                sendingTime = DateTime.Now,
-                targetLogin = TargetTB.Text,
-                message = MessageTB.Text,
-                SomeObject = data,
-            });
-           // InsertMessage(protocol, true);
-           // ImageContainer.Source = null;
-            client.Exchange(protocol.SerializeToByte);
-        }
     }
     class Client
     {
@@ -243,6 +216,7 @@ namespace ClientApp
             });
             Exchange(protocol.SerializeToByte);
             client.Close();
+            //protocol.Dispose();
         }
 
         private void AsynkConnecter_DoWork(object? sender, DoWorkEventArgs e)
@@ -298,7 +272,7 @@ namespace ClientApp
                         return true;
                     case 3:
                         MessageBox.Show("Ошибка передачи данных");
-                        return true;
+                        return false;
 
                     default:
                         MessageBox.Show("Какая-то ошибка");
@@ -315,12 +289,14 @@ namespace ClientApp
             }
         }
 
-        public async void Exchange(byte[] message)
+        public void Exchange(byte[] message)
         {
             try
             {
                 if (stream != null)
-                   await stream.WriteAsync(message);
+                {
+                    stream.Write(message, 0, message.Length);
+                }
             }
             catch (Exception ex)
             {
@@ -343,6 +319,8 @@ namespace ClientApp
                     byte[] size = new byte[3];
                     client.GetStream().Read(size, 0, size.Length);
 
+
+
                     int intSize = 0;
                     for (int i = size.Length - 1; i >= 0; i--)
                     {
@@ -350,15 +328,32 @@ namespace ClientApp
                     }
 
                     byte[] myReadBuffer = new byte[intSize];
-                    stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-
+                    int ammount = 0; 
+                    while (ammount<intSize)
+                    {
+                        byte[] buff = new byte[intSize];
+                        int kol = stream.Read(buff, 0, buff.Length);
+                        Array.Copy(buff, 0, myReadBuffer, ammount, kol);
+                        ammount += kol;
+                    }
+                    
                     Protocol protocol = new(myReadBuffer);
                     if (protocol.data != null && protocol.data.sizeOfObject != null)
                     {
                         protocol.data.SomeObject = new byte[(int)protocol.data.sizeOfObject];
-                        stream.Read(protocol.data.SomeObject, 0, (int)protocol.data.sizeOfObject);
+                        ammount = 0;
+                        while (ammount < (int)protocol.data.sizeOfObject)
+                        {
+                            byte[] buff = new byte[(int)protocol.data.sizeOfObject];
+                            int kol = stream.Read(buff, 0, (int)protocol.data.sizeOfObject);
+                            Array.Copy(buff, 0, protocol.data.SomeObject, ammount, kol);
+                           
+                            ammount += kol;
+                        }
+                       
                     }
                     e.Result = protocol;
+                  
                     return;
                 }
 

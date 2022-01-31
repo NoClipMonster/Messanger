@@ -25,9 +25,8 @@
             <TextBox x:Name="TargetTB" HorizontalAlignment="Left" Margin="65,5,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
             <Label  Content="Target" HorizontalAlignment="Left" Margin="18,1,0,0" VerticalAlignment="Top" Height="26" Width="42"/>
             <Label Content="Message" HorizontalAlignment="Left" Margin="7,25,0,0" VerticalAlignment="Top" Height="29" Width="58"/>
-            <TextBox x:Name="PathBox" HorizontalAlignment="Left" Margin="65,95,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" IsReadOnly="True" MouseDoubleClick="PathBox_MouseDoubleClick" MaxLines="1"/>
+            <TextBox x:Name="PathBox" HorizontalAlignment="Left" Margin="65,95,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="120" IsReadOnly="True" MouseDoubleClick="PathBox_MouseDoubleClick" MaxLines="1" FontSize="12" Height="18" TextAlignment="Right"/>
             <Label Content="Image path" HorizontalAlignment="Left" Margin="-2,90,0,0" VerticalAlignment="Top" Height="29" Width="70"/>
-            <Image x:Name="ImageContainer" HorizontalAlignment="Left" Height="100" Margin="10,143,0,0" VerticalAlignment="Top" Width="175" Stretch="Uniform"/>
         </Grid>
         <Grid  x:Name="loginGrid" Margin="5,40,0,0" HorizontalAlignment="Left" Width="185" Height="49" VerticalAlignment="Top" Visibility="Visible">
             <TextBox x:Name="LoginTB" HorizontalAlignment="Left" Margin="60,6,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
@@ -36,7 +35,6 @@
             <Label  Content="Login" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="7,2,0,0" VerticalAlignment="Top" Height="26" Width="46"/>
 
         </Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="65,259,0,0" VerticalAlignment="Top" Click="Button_Click"/>
     </Grid>
 </Window>
 

@@ -50,10 +50,13 @@ namespace ClientApp
                 }
                 get => someObject;
             }
+
             [JsonIgnore]
             byte[]? someObject;
 
             public int? sizeOfObject;
+
+            public string? nameOfObject;
 
         }
 
@@ -66,7 +69,7 @@ namespace ClientApp
                     return Array.Empty<byte>();
                 byte[] byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
                 byte[] size = new byte[3];
-                int objLenght = data.sizeOfObject??0;
+                int objLenght = data.sizeOfObject ?? 0;
                 for (int i = size.Length - 1; i >= 0; i--)
                 {
                     size[i] = (byte)((byteData.Length % Math.Pow(256, size.Length - i)) / Math.Pow(256, size.Length - (i + 1)));
@@ -89,12 +92,12 @@ namespace ClientApp
             {
                 try
                 {
-                data = new();
-                data = JsonConvert.DeserializeObject<Data>(innerData);
+                    data = new();
+                    data = JsonConvert.DeserializeObject<Data>(innerData);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    throw;
+
                 }
 
             }
@@ -102,12 +105,11 @@ namespace ClientApp
 
         public void Deserialize(byte[] innerData)
         {
-
             if (innerData != null)
             {
                 Deserialize(Encoding.UTF8.GetString(innerData));
             }
-
         }
+
     }
 }

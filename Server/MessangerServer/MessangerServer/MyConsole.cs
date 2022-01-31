@@ -7,6 +7,7 @@
             switch (type)
             {
                 case MsgType.Information:
+                    Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.Write(DateTime.Now.ToShortTimeString() + " [SERVER] ");
                     break;
                 case MsgType.Warning:
@@ -22,7 +23,7 @@
                     Console.Write(DateTime.Now.ToShortTimeString() + " [SETTINGS] ");
                     break;
                 case MsgType.Client:
-                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(DateTime.Now.ToShortTimeString() + " [CLIENT] ");
                     break;
             }

@@ -5,7 +5,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using static MessangerServer.MyConsole;
-using System;
 
 namespace MessangerServer
 {
@@ -80,7 +79,7 @@ namespace MessangerServer
         #region Потоки
         public void WaitForCommand()
         {
-            string[] commands = { "Start", "Stop", "Restart", "Clients", "Backup", "Throw exceptions", "Show settings" };
+            string[] commands = { "Start", "Stop", "Restart","Close", "Clients", "Backup", "Throw exceptions", "Show settings" };
 
             while (true)
             {
@@ -116,8 +115,13 @@ namespace MessangerServer
                         Start();
                         break;
 
-                    case "clients":
+                    case "close":
                     case "4":
+                        Stop();
+                        Environment.Exit(0);
+                        break;
+                    case "clients":
+                    case "5":
                         if (onlineClients.Count == 0)
                             WriteLine("Пусто", MsgType.Warning);
                         while (сollectionIsСhanging) { }
@@ -128,17 +132,17 @@ namespace MessangerServer
                         break;
 
                     case "backup":
-                    case "5":
+                    case "6":
                         Backup(loginInfo);
                         break;
 
                     case "throw exceptions":
-                    case "6":
+                    case "7":
                         sett.ThrowAnException = !sett.ThrowAnException;
                         break;
 
                     case "show settings":
-                    case "7":
+                    case "8":
                         sett.Show();
                         break;
 
@@ -146,7 +150,7 @@ namespace MessangerServer
             }
         }
 
-        async void WaitForInput_DoWork(object? sender, DoWorkEventArgs e)
+        void WaitForInput_DoWork(object? sender, DoWorkEventArgs e)
         {
             while (!waitForInput.CancellationPending)
             {
@@ -179,10 +183,18 @@ namespace MessangerServer
                                 for (int i = size.Length - 1; i >= 0; i--)
                                 {
                                     intSize += size[i] * (int)Math.Pow(256, size.Length - (i + 1));
-                                }
-                                byte[] myReadBuffer = new byte[intSize];
-                                client.Value.GetStream().Read(myReadBuffer, 0, myReadBuffer.Length);
+                                }   
 
+                                byte[] myReadBuffer = new byte[intSize];
+                                int ammount = 0;
+                               
+                                while (ammount < intSize)
+                                {
+                                    byte[] buff = new byte[intSize];
+                                    int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
+                                    Array.Copy(buff,0,myReadBuffer,ammount,kol);
+                                    ammount += kol;
+                                }
                                 Protocol protocol = new(myReadBuffer);
 
                                 if (protocol.data != null)
@@ -191,16 +203,22 @@ namespace MessangerServer
                                     if (protocol.data.sizeOfObject != null)
                                     {
                                         byte[] obj = new byte[(int)protocol.data.sizeOfObject];
-                                      
-                                       await client.Value.GetStream().ReadAsync(obj);
-                                        for (int i = 0; i < obj.Length; i++)
+                                        ammount = 0;
+                                        DateTime dt = DateTime.Now;
+                                        while (ammount < (int)protocol.data.sizeOfObject)
                                         {
-                                            if (obj[i] != i%256)
-                                            {
-
-                                            }
+                                            byte[] buff = new byte[(int)protocol.data.sizeOfObject];
+                                            int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
+                                            Array.Copy(buff, 0, obj, ammount, kol);
+                                            ammount += kol;                                          
                                         }
-                                            
+                                       WriteLine(String.Format("\n  Размер файла: {0} Kb" +
+                                            "\n  Время потраченное на получение: {1} s" +
+                                            "\n  Скорость передачи: {2} Kb/s",Math.Round((decimal)protocol.data.sizeOfObject/1024,3)
+                                            ,(DateTime.Now-dt).TotalSeconds,
+                                            Math.Round(((decimal)protocol.data.sizeOfObject / 1024)/(decimal)(DateTime.Now - dt).TotalSeconds,3)
+                                            ), MsgType.Client);
+                                        protocol.data.SomeObject = obj;
                                     }
                                     if (protocol.data.closeConnection)
                                     {
@@ -216,12 +234,12 @@ namespace MessangerServer
                                         if (protocol.data.targetLogin != null && onlineClients.TryGetValue(protocol.data.targetLogin, out TcpClient? tcpClient))
                                         {
                                             if (tcpClient != null)
-                                                tcpClient.GetStream().Write(protocol.SerializeToByte);
+                                                tcpClient.GetStream().Write(protocol.SerializeToByte,0,protocol.SerializeToByte.Length);
                                         }
                                     }
 
                                 }
-
+                           
                             }
                             catch (Exception ex)
                             {
@@ -257,7 +275,15 @@ namespace MessangerServer
                         }
 
                         byte[] myReadBuffer = new byte[intSize];
-                        int kount = client.GetStream().Read(myReadBuffer, 0, myReadBuffer.Length);
+                        int ammount = 0;
+                        while (ammount < intSize)
+                        {
+                            byte[] buff = new byte[intSize];
+                            int kol = client.GetStream().Read(buff, 0, buff.Length);
+                            Array.Copy(buff, 0, myReadBuffer, ammount, kol);
+                            
+                            ammount += kol;
+                        }
 
                         string[]? logPas = JsonConvert.DeserializeObject<string[]>(Encoding.UTF8.GetString(myReadBuffer));
                         if (logPas == null)
@@ -346,10 +372,11 @@ namespace MessangerServer
                     Protocol protocol = new(new Protocol.Data { closeConnection = true, senderLogin = "server", targetLogin = client.Key });
                     if (client.Value.Connected)
                     {
-                        client.Value.GetStream().Write(protocol.SerializeToByte);
+                        client.Value.GetStream().Write(protocol.SerializeToByte,0,protocol.SerializeToByte.Length);
                         client.Value.GetStream().Close();
                         client.Value.Close();
                     }
+                   
                 }
                 catch (Exception ex)
                 {
@@ -371,9 +398,10 @@ namespace MessangerServer
 
             while (waitForClients.IsBusy || waitForInput.IsBusy)
             {
-                Console.WriteLine(".");
-                Thread.Sleep(250);
+                Console.Write(".");
+                Thread.Sleep(500);
             }
+            Console.WriteLine();
             WriteLine("Сервер остановлен");
 
         }
