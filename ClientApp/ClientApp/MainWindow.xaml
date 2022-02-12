@@ -28,11 +28,12 @@
             <TextBox x:Name="PathBox" HorizontalAlignment="Left" Margin="65,95,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="120" IsReadOnly="True" MouseDoubleClick="PathBox_MouseDoubleClick" MaxLines="1" FontSize="12" Height="18" TextAlignment="Right"/>
             <Label Content="Image path" HorizontalAlignment="Left" Margin="-2,90,0,0" VerticalAlignment="Top" Height="29" Width="70"/>
         </Grid>
-        <Grid  x:Name="loginGrid" Margin="5,40,0,0" HorizontalAlignment="Left" Width="185" Height="49" VerticalAlignment="Top" Visibility="Visible">
-            <TextBox x:Name="LoginTB" HorizontalAlignment="Left" Margin="60,6,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
-            <TextBox x:Name="PasswordTB" HorizontalAlignment="Left" Margin="60,27,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
-            <Label  Content="Password" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="0,23,0,0" VerticalAlignment="Top" Height="26" Width="60"/>
-            <Label  Content="Login" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="7,2,0,0" VerticalAlignment="Top" Height="26" Width="46"/>
+        <Grid  x:Name="loginGrid" Margin="5,35,0,0" HorizontalAlignment="Left" Width="185" Height="74" VerticalAlignment="Top" Visibility="Visible">
+            <TextBox x:Name="LoginTB" HorizontalAlignment="Left" Margin="60,7,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Top" Width="120" Height="18"/>
+            <TextBox x:Name="PasswordTB" HorizontalAlignment="Left" Margin="60,0,0,0" TextWrapping="Wrap" Text="admin" VerticalAlignment="Center" Width="120" Height="18"/>
+            <Label  Content="Password" HorizontalContentAlignment="Right" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="60"/>
+            <Label  Content="Login" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="7,3,0,0" VerticalAlignment="Top" Height="26" Width="46"/>
+            <CheckBox x:Name="isNewUser" Content="New User" HorizontalAlignment="Left" Margin="60,51,0,0" VerticalAlignment="Top"/>
 
         </Grid>
     </Grid>

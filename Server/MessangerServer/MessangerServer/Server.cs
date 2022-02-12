@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Protocol;
 using System.ComponentModel;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using static MessangerServer.MyConsole;
+
 
 namespace MessangerServer
 {
@@ -26,18 +28,17 @@ namespace MessangerServer
     }
     class MyServer
     {
-        static readonly string loginsDir = @"base.json";
-
         readonly Settings sett = new();
         readonly TcpListener server;
         readonly BackgroundWorker waitForClients;
         readonly BackgroundWorker waitForInput;
-        readonly Dictionary<string, string> loginInfo;
+
         static readonly Dictionary<string, TcpClient> onlineClients = new();
         static readonly Dictionary<string, Timer> onlineCheckers = new();
         readonly TimerCallback timerCallback = new(CheckForConnection);
         bool сollectionIsСhanging = false;
         bool сollectionIsReading = false;
+        readonly DbClientData clientBase;
         public MyServer()
         {
             try
@@ -50,16 +51,9 @@ namespace MessangerServer
                 WriteLine("Значения будут установленны по умолчанию", MsgType.Warning);
                 sett.Save();
             }
-            //TODO: TRY тут
-            loginInfo = new Dictionary<string, string>();
 
-            if (File.Exists(loginsDir))
-            {
-                string[][]? bb = JsonConvert.DeserializeObject<string[][]?>(File.ReadAllText(loginsDir));
-                if (bb != null)
-                    for (int i = 0; i < bb.Length; i++)
-                        loginInfo.Add(bb[i][0], bb[i][1]);
-            }
+
+            clientBase = new();
             WriteLine("База 'Логин/пароль' загруженна");
 
             IPAddress localAddr = IPAddress.Parse(sett.Ip);
@@ -79,7 +73,7 @@ namespace MessangerServer
         #region Потоки
         public void WaitForCommand()
         {
-            string[] commands = { "Start", "Stop", "Restart","Close", "Clients", "Backup", "Throw exceptions", "Show settings" };
+            string[] commands = { "Start", "Stop", "Restart", "Close", "Clients", "Throw exceptions", "Show settings" };
 
             while (true)
             {
@@ -131,18 +125,13 @@ namespace MessangerServer
                         сollectionIsReading = false;
                         break;
 
-                    case "backup":
-                    case "6":
-                        Backup(loginInfo);
-                        break;
-
                     case "throw exceptions":
-                    case "7":
+                    case "6":
                         sett.ThrowAnException = !sett.ThrowAnException;
                         break;
 
                     case "show settings":
-                    case "8":
+                    case "7":
                         sett.Show();
                         break;
 
@@ -154,6 +143,7 @@ namespace MessangerServer
         {
             while (!waitForInput.CancellationPending)
             {
+                
                 while (сollectionIsСhanging)
                 {
 
@@ -183,22 +173,24 @@ namespace MessangerServer
                                 for (int i = size.Length - 1; i >= 0; i--)
                                 {
                                     intSize += size[i] * (int)Math.Pow(256, size.Length - (i + 1));
-                                }   
+                                }
 
                                 byte[] myReadBuffer = new byte[intSize];
                                 int ammount = 0;
-                               
+
                                 while (ammount < intSize)
                                 {
                                     byte[] buff = new byte[intSize];
                                     int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
-                                    Array.Copy(buff,0,myReadBuffer,ammount,kol);
+                                    Array.Copy(buff, 0, myReadBuffer, ammount, kol);
                                     ammount += kol;
                                 }
-                                Protocol protocol = new(myReadBuffer);
-
+                                MyProtocol protocol = new(myReadBuffer);
+                                Message message;
                                 if (protocol.data != null)
                                 {
+                                    message = new() { Date = protocol.data.sendingTime, Id = clientBase.messages.Count(), SenderID = protocol.data.senderLogin, RecipientID = protocol.data.targetLogin, Text = protocol.data.message };
+
                                     protocol.data.senderLogin = client.Key;
                                     if (protocol.data.sizeOfObject != null)
                                     {
@@ -210,15 +202,17 @@ namespace MessangerServer
                                             byte[] buff = new byte[(int)protocol.data.sizeOfObject];
                                             int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
                                             Array.Copy(buff, 0, obj, ammount, kol);
-                                            ammount += kol;                                          
+                                            ammount += kol;
                                         }
-                                       WriteLine(String.Format("\n  Размер файла: {0} Kb" +
-                                            "\n  Время потраченное на получение: {1} s" +
-                                            "\n  Скорость передачи: {2} Kb/s",Math.Round((decimal)protocol.data.sizeOfObject/1024,3)
-                                            ,(DateTime.Now-dt).TotalSeconds,
-                                            Math.Round(((decimal)protocol.data.sizeOfObject / 1024)/(decimal)(DateTime.Now - dt).TotalSeconds,3)
-                                            ), MsgType.Client);
+                                        WriteLine(String.Format("\n  Размер файла: {0} Kb" +
+                                             "\n  Время потраченное на получение: {1} s" +
+                                             "\n  Скорость передачи: {2} Kb/s", Math.Round((decimal)protocol.data.sizeOfObject / 1024, 3)
+                                             , (DateTime.Now - dt).TotalSeconds,
+                                             Math.Round(((decimal)protocol.data.sizeOfObject / 1024) / (decimal)(DateTime.Now - dt).TotalSeconds, 3)
+                                             ), MsgType.Client);
                                         protocol.data.SomeObject = obj;
+                                        message.File = obj;
+                                        
                                     }
                                     if (protocol.data.closeConnection)
                                     {
@@ -234,12 +228,13 @@ namespace MessangerServer
                                         if (protocol.data.targetLogin != null && onlineClients.TryGetValue(protocol.data.targetLogin, out TcpClient? tcpClient))
                                         {
                                             if (tcpClient != null)
-                                                tcpClient.GetStream().Write(protocol.SerializeToByte,0,protocol.SerializeToByte.Length);
+                                                tcpClient.GetStream().Write(protocol.SerializeToByte, 0, protocol.SerializeToByte.Length);
                                         }
                                     }
+                                    clientBase.AddMessage(message);
 
                                 }
-                           
+
                             }
                             catch (Exception ex)
                             {
@@ -260,10 +255,9 @@ namespace MessangerServer
             {
                 try
                 {
-
                     if (server.Pending())
                     {
-                        TcpClient? client = server.AcceptTcpClient();
+                        TcpClient client = server.AcceptTcpClient();
 
                         byte[] size = new byte[3];
                         client.GetStream().Read(size, 0, size.Length);
@@ -276,40 +270,53 @@ namespace MessangerServer
 
                         byte[] myReadBuffer = new byte[intSize];
                         int ammount = 0;
+
                         while (ammount < intSize)
                         {
                             byte[] buff = new byte[intSize];
                             int kol = client.GetStream().Read(buff, 0, buff.Length);
                             Array.Copy(buff, 0, myReadBuffer, ammount, kol);
-                            
+
                             ammount += kol;
                         }
 
                         string[]? logPas = JsonConvert.DeserializeObject<string[]>(Encoding.UTF8.GetString(myReadBuffer));
+
                         if (logPas == null)
                         {
                             client.GetStream().Write(new byte[] { 3 }, 0, 1);
                             continue;
                         }
-
-                        if (loginInfo.TryGetValue(logPas[0], out string? basePassword) && basePassword != null)
+                        if (logPas[2] == "True")
                         {
-                            if (basePassword == logPas[1])
+                            
+                         if(clientBase.AddUser(logPas[0], logPas[1])) 
+                                client.GetStream().Write(new byte[] { 2 }, 0, 1);
+                            else
                             {
-                                client.GetStream().Write(new byte[] { 1 }, 0, 1);
+                                client.GetStream().Write(new byte[] { 3 }, 0, 1);
+                                continue;
                             }
+                            
+                        }
+                        else
+                        {
+                            User? user = clientBase.users.FirstOrDefault(g => g.Id == logPas[0]);
+                            if(user == null)
+                            {
+                                client.GetStream().Write(new byte[] { 0 }, 0, 1);
+                                continue;
+                            }
+                            if (user.Password == logPas[1])
+                                client.GetStream().Write(new byte[] { 1 }, 0, 1);
                             else
                             {
                                 client.GetStream().Write(new byte[] { 0 }, 0, 1);
                                 continue;
                             }
                         }
-                        else
-                        {
-                            client.GetStream().Write(new byte[] { 2 }, 0, 1);
-                            loginInfo.Add(logPas[0], logPas[1]);
-                            Backup(loginInfo);
-                        }
+
+
                         WriteLine("Клиент подключен: " + client.Client.RemoteEndPoint + " : " + logPas[0], MsgType.Client);
                         сollectionIsСhanging = true;
                         while (сollectionIsReading) { }
@@ -369,14 +376,14 @@ namespace MessangerServer
 
                 try
                 {
-                    Protocol protocol = new(new Protocol.Data { closeConnection = true, senderLogin = "server", targetLogin = client.Key });
+                    MyProtocol protocol = new(new Data { closeConnection = true, senderLogin = "server", targetLogin = client.Key });
                     if (client.Value.Connected)
                     {
-                        client.Value.GetStream().Write(protocol.SerializeToByte,0,protocol.SerializeToByte.Length);
+                        client.Value.GetStream().Write(protocol.SerializeToByte, 0, protocol.SerializeToByte.Length);
                         client.Value.GetStream().Close();
                         client.Value.Close();
                     }
-                   
+
                 }
                 catch (Exception ex)
                 {
@@ -420,26 +427,27 @@ namespace MessangerServer
 
         }
 
-        static void Backup(object? obj)
-        {
-            if (obj != null)
-            {
-                WriteLine("Резервирование данных началось");
+        /* 
+         static void Backup(object? obj)
+         {
+             if (obj != null)
+             {
+                 WriteLine("Резервирование данных началось");
 
-                Dictionary<string, string> dict = (Dictionary<string, string>)obj;
-                string[][] bb = new string[dict.Count][];
-                for (int i = 0; i < bb.Length; i++)
-                    bb[i] = new string[] { dict.Keys.ElementAt(i), dict.Values.ElementAt(i) };
+                 Dictionary<string, string> dict = (Dictionary<string, string>)obj;
+                 string[][] bb = new string[dict.Count][];
+                 for (int i = 0; i < bb.Length; i++)
+                     bb[i] = new string[] { dict.Keys.ElementAt(i), dict.Values.ElementAt(i) };
 
-                Task task = File.WriteAllTextAsync(loginsDir, JsonConvert.SerializeObject(bb));
-                while (task.Status == TaskStatus.Running)
-                {
-                    Console.Write(".");
-                }
-                WriteLine("Резервирование данных выполненно");
-            }
-        }
-
+                 Task task = File.WriteAllTextAsync(loginsDir, JsonConvert.SerializeObject(bb));
+                 while (task.Status == TaskStatus.Running)
+                 {
+                     Console.Write(".");
+                 }
+                 WriteLine("Резервирование данных выполненно");
+             }
+         }
+        */
         #endregion
 
         static void CheckForConnection(object? obj)
@@ -447,7 +455,6 @@ namespace MessangerServer
 
             if (obj is not string name)
                 return;
-            //TODO: The given key 'admin' was not present in the dictionary.'
 
             TcpClient client = onlineClients[name];
             IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();

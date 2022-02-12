@@ -5,9 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Interceptor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <ListBox x:Name="MainList"/>
+        Title="MainWindow" Height="540" Width="1280">
+    <Grid x:Name="MainGrid">
+        <ListBox x:Name="PacketsList" d:ItemsSource="{d:SampleData ItemCount=5}" HorizontalAlignment="Left" Width="215" SelectionChanged="PacketsList_SelectionChanged"/>
+        <Label x:Name="timeL" Content="Label" HorizontalAlignment="Left" Margin="220,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lenghL" Content="Label" HorizontalAlignment="Left" Margin="220,36,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="srcIpL" Content="Label" HorizontalAlignment="Left" Margin="220,62,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="dstIpL" Content="Label" HorizontalAlignment="Left" Margin="220,88,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="srcPortL" Content="Label" HorizontalAlignment="Left" Margin="220,113,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="dstPortL" Content="Label" HorizontalAlignment="Left" Margin="220,139,0,0" VerticalAlignment="Top"/>
+        <RichTextBox x:Name="dataRTB" Margin="220,165,610,290">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text="RichTextBox"/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+        <Label x:Name="ipPacketBytesL" Content="Label" HorizontalAlignment="Left" Margin="220,239,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="tcpPacketBytesL" Content="Label" HorizontalAlignment="Left" Margin="220,265,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="UseFullL" Content="Label" HorizontalAlignment="Left" Margin="220,296,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="ProcessID" Content="Label" HorizontalAlignment="Left" Margin="220,322,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="procNameTB" HorizontalAlignment="Left" Margin="220,361,0,0" TextWrapping="Wrap" Text="GetSend" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="filtBut" Content="Button" HorizontalAlignment="Left" Margin="350,359,0,0" VerticalAlignment="Top" Click="filtBut_Click"/>
 
     </Grid>
 </Window>

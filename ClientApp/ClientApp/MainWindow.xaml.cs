@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Protocol;
 
 namespace ClientApp
 {
@@ -27,7 +28,6 @@ namespace ClientApp
         bool connected = false;
         public MainWindow()
         {
-
             InitializeComponent();
             client = new Client();
             client.waitForMessages.RunWorkerCompleted += WaitForMessages_RunWorkerCompleted;
@@ -40,7 +40,7 @@ namespace ClientApp
             {
                 client.waitForMessages.RunWorkerAsync();
 
-                if (e.Result is Protocol protocol && protocol.data != null)
+                if (e.Result is MyProtocol protocol && protocol.data != null)
                 {
 
                     if (protocol.data.closeConnection)
@@ -65,7 +65,7 @@ namespace ClientApp
 
         }
 
-        private void InsertMessage(Protocol protocol, bool user)
+        private void InsertMessage(MyProtocol protocol, bool user)
         {
             if (protocol.data is null)
                 return;
@@ -103,7 +103,7 @@ namespace ClientApp
                 MessageBox.Show("Поля не должны быть пустыми.");
                 return;
             }
-            Protocol protocol = new(new Protocol.Data()
+            MyProtocol protocol = new(new Data()
             {
                 senderLogin = LoginTB.Text,
                 sendingTime = DateTime.Now,
@@ -132,7 +132,7 @@ namespace ClientApp
                     MessageBox.Show("Поля не должны быть пустыми.");
                     return;
                 }
-                client.asynkConnecter.RunWorkerAsync(new string[] { LoginTB.Text, PasswordTB.Text });
+                client.asynkConnecter.RunWorkerAsync(new string[] { LoginTB.Text, PasswordTB.Text , isNewUser.IsChecked.ToString() } );
                 StartClientBT.Content = "Stop connection";
                 ConnectedIndicator.Fill = new SolidColorBrush(Colors.Yellow);
                 StartClientBT.IsEnabled = false;
@@ -208,7 +208,7 @@ namespace ClientApp
         public void CloseConnection()
         {
             waitForMessages.CancelAsync();
-            Protocol protocol = new(new Protocol.Data()
+            MyProtocol protocol = new(new Data()
             {
                 senderLogin = login,
                 targetLogin = "server",
@@ -271,7 +271,7 @@ namespace ClientApp
                         MessageBox.Show("Регистрация прошла успешно");
                         return true;
                     case 3:
-                        MessageBox.Show("Ошибка передачи данных");
+                        MessageBox.Show("Такой пользователь уже существует");
                         return false;
 
                     default:
@@ -336,8 +336,8 @@ namespace ClientApp
                         Array.Copy(buff, 0, myReadBuffer, ammount, kol);
                         ammount += kol;
                     }
-                    
-                    Protocol protocol = new(myReadBuffer);
+
+                    MyProtocol protocol = new(myReadBuffer);
                     if (protocol.data != null && protocol.data.sizeOfObject != null)
                     {
                         protocol.data.SomeObject = new byte[(int)protocol.data.sizeOfObject];

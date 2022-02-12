@@ -1,0 +1,11 @@
+﻿  Lab1.cpp
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(18,25): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(19,29): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(26,25): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(38,29): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(39,31): warning C4244: '*=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(51,25): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(52,29): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(72,24): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\iaved\Desktop\Messanger\Lab1\Header.h(73,26): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+  Lab1.vcxproj -> C:\Users\iaved\Desktop\Messanger\Lab1\x64\Debug\Lab1.exe

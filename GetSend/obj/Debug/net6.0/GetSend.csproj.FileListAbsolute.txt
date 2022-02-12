@@ -1,0 +1,15 @@
+C:\Users\iaved\Desktop\Messanger\GetSend\bin\Debug\net6.0\GetSend.exe
+C:\Users\iaved\Desktop\Messanger\GetSend\bin\Debug\net6.0\GetSend.deps.json
+C:\Users\iaved\Desktop\Messanger\GetSend\bin\Debug\net6.0\GetSend.runtimeconfig.json
+C:\Users\iaved\Desktop\Messanger\GetSend\bin\Debug\net6.0\GetSend.dll
+C:\Users\iaved\Desktop\Messanger\GetSend\bin\Debug\net6.0\GetSend.pdb
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.csproj.AssemblyReference.cache
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.AssemblyInfoInputs.cache
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.AssemblyInfo.cs
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.csproj.CoreCompileInputs.cache
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.dll
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\refint\GetSend.dll
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.pdb
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\GetSend.genruntimeconfig.cache
+C:\Users\iaved\Desktop\Messanger\GetSend\obj\Debug\net6.0\ref\GetSend.dll

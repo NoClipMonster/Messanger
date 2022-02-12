@@ -21,3 +21,5 @@ C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\obj\Debug\net6.0-windows\re
 C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\obj\Debug\net6.0-windows\ClientApp.pdb
 C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\obj\Debug\net6.0-windows\ClientApp.genruntimeconfig.cache
 C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\obj\Debug\net6.0-windows\refint\ClientApp.dll
+C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\bin\Debug\net6.0-windows\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\ClientApp\ClientApp\bin\Debug\net6.0-windows\Protocol.pdb

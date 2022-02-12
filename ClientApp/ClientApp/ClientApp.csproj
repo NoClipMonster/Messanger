@@ -11,4 +11,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Protocol">
+      <HintPath>..\..\Protocol\bin\Debug\net6.0\Protocol.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
