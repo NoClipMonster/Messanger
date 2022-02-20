@@ -143,7 +143,7 @@ namespace MessangerServer
         {
             while (!waitForInput.CancellationPending)
             {
-                
+
                 while (сollectionIsСhanging)
                 {
 
@@ -212,7 +212,7 @@ namespace MessangerServer
                                              ), MsgType.Client);
                                         protocol.data.SomeObject = obj;
                                         message.File = obj;
-                                        
+
                                     }
                                     if (protocol.data.closeConnection)
                                     {
@@ -259,7 +259,9 @@ namespace MessangerServer
                     {
                         TcpClient client = server.AcceptTcpClient();
 
-                        byte[] size = new byte[3];
+                        bool reg = Convert.ToBoolean(client.GetStream().ReadByte());
+
+                        byte[] size = new byte[4];
                         client.GetStream().Read(size, 0, size.Length);
 
                         int intSize = 0;
@@ -284,25 +286,25 @@ namespace MessangerServer
 
                         if (logPas == null)
                         {
-                            client.GetStream().Write(new byte[] { 3 }, 0, 1);
+                            client.GetStream().Write(new byte[] { 2 }, 0, 1);
                             continue;
                         }
-                        if (logPas[2] == "True")
+                        if (reg)
                         {
-                            
-                         if(clientBase.AddUser(logPas[0], logPas[1])) 
-                                client.GetStream().Write(new byte[] { 2 }, 0, 1);
+
+                            if (clientBase.AddUser(logPas[0], logPas[1]))
+                                client.GetStream().Write(new byte[] { 1 }, 0, 1);
                             else
                             {
-                                client.GetStream().Write(new byte[] { 3 }, 0, 1);
+                                client.GetStream().Write(new byte[] { 0 }, 0, 1);
                                 continue;
                             }
-                            
+
                         }
                         else
                         {
                             User? user = clientBase.users.FirstOrDefault(g => g.Id == logPas[0]);
-                            if(user == null)
+                            if (user == null)
                             {
                                 client.GetStream().Write(new byte[] { 0 }, 0, 1);
                                 continue;

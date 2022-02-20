@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="MessangerApp2._0.ContactUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MessangerApp2._0"
+             mc:Ignorable="d" Height="70" Width="275">
+    <Border x:Name="contactBorder" CornerRadius="5,5,5,5" MouseEnter="Border_MouseEnter" MouseLeave="contactBorder_MouseLeave">
+        <Border.Background>
+            <SolidColorBrush Color="#FF23252B" Opacity="0"/>
+        </Border.Background>
+        <Grid>
+            <Label x:Name="name" Content="Человек" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontSize="18" FontFamily="Arial" Margin="10,5,0,0" FontWeight="Bold"/>
+            <Label x:Name="lastmsg" Content="Последнее сообщение" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="16" FontFamily="Arial" Margin="10,0,0,5" Foreground="#FF9A9797"/>
+            <Label x:Name="lasttime" Content="Дата" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="16" FontFamily="Arial" Margin="0,7,10,0" Foreground="#FF9A9797"/>
+        </Grid>
+    </Border>
+
+</UserControl>

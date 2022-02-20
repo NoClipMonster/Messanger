@@ -1,0 +1,5 @@
+﻿  ConsoleApplication1.cpp
+  some.cpp
+C:\Users\iaved\Desktop\Messanger\ConsoleApplication1\some.cpp(3,1): error C2011: 'some': 'class' type redefinition
+C:\Users\iaved\Desktop\Messanger\ConsoleApplication1\some.h(2): message : see declaration of 'some'
+  Generating Code...

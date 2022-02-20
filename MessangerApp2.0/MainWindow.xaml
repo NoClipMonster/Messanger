@@ -5,8 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessangerApp2._0"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Textator" Height="640" Width="1190" Background="#FF18191D">
+    <Grid x:Name="MainGrid">
+        <Grid.ColumnDefinitions >
+            <ColumnDefinition Width="1*" MinWidth="300"/>
+            <ColumnDefinition Width="3*" AllowDrop="True"/>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="1" Content="Button" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        <Border Grid.Column="1" Height="50" VerticalAlignment="Bottom">
+            <Grid Background="#FF23252B">
+                <TextBox TextWrapping="Wrap" Text="TextBox" Margin="50,0,50,0" Foreground="White" FontSize="16">
+                    <TextBox.BorderBrush>
+                        <SolidColorBrush Color="#FFABADB3" Opacity="0"/>
+                    </TextBox.BorderBrush>
+                    <TextBox.Background>
+                        <SolidColorBrush Color="White" Opacity="0"/>
+                    </TextBox.Background>
+                </TextBox>
+                <Button Content="Button" HorizontalAlignment="Left" Width="50" Height="50" VerticalAlignment="Center"/>
+                <Button Content="Button" HorizontalAlignment="Right" Width="50" Height="50" VerticalAlignment="Center"/>
+            </Grid>
 
+        </Border>
     </Grid>
+
 </Window>

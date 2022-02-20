@@ -257,6 +257,7 @@ namespace ClientApp
                 stream.Write(byteLogPas, 0, byteLogPas.Length);
 
                 byte[] answer = new byte[1];
+
                 stream.Read(answer, 0, 1);
                 switch (answer[0])
                 {

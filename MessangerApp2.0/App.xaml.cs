@@ -12,6 +12,6 @@ namespace MessangerApp2._0
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
-    {
+    { 
     }
 }

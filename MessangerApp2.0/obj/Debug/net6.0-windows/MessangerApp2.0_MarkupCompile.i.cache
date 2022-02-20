@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
 C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\App.xaml
-3-1776503555
+4-1944111797
 
-7389117161
-1941142463650
-MainPage.xaml;MainWindow.xaml;Registration.xaml;
+929215272
+1971717658291
+ContactUC.xaml;MainWindow.xaml;MessageControl.xaml;RegistrationWindow.xaml;
 
-True
+False
 
