@@ -1,50 +1,57 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace Protocol
 {
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class Data
+    public enum MessageType { Direct, Group, Command };
+    public class Command
     {
-        [JsonRequired]
-        public string senderLogin = String.Empty;
-
-        [JsonRequired]
+        public enum CommandType {Connection, Disconnection}
+        public CommandType commandType;
+        public string command = string.Empty;
+    }
+    public class DirectMessage : Message
+    {
         public string targetLogin = String.Empty;
+    }
 
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+    public class GroupMessage : Message
+    {
+        public string groupIdLogin = String.Empty;
+    }
+
+    public class Message
+    {
+        public string senderLogin = String.Empty;
         public DateTime sendingTime = DateTime.Now;
-
         public string message = String.Empty;
+        public Dataset? dataset;
+    }
 
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public bool closeConnection;
-
-        [JsonIgnore]
-        public byte[]? SomeObject
+    public class Dataset
+    {
+        public BackgroundWorker fileWaiter;
+        public Dataset(string path)
         {
-            set
+            fileWaiter = new BackgroundWorker();
+            fileWaiter.DoWork += FileWaiter_DoWork;
+            fileWaiter.RunWorkerAsync(path);
+
+            void FileWaiter_DoWork(object? sender, DoWorkEventArgs e)
             {
-                if (value != null)
+                if (e.Argument != null)
                 {
-                    someObject = value;
+                    someObject = File.ReadAllBytes((string)e.Argument);
                     sizeOfObject = someObject.Length;
+                    nameOfObject = new FileInfo((string)e.Argument).Name;
                 }
             }
-            get => someObject;
         }
 
-        [JsonIgnore]
-        byte[]? someObject;
+        public byte[] someObject = Array.Empty<byte>();
 
-        public int? sizeOfObject;
+        public int sizeOfObject = -1;
 
-        public string? nameOfObject;
+        public string nameOfObject = String.Empty;
 
     }
-  
 }

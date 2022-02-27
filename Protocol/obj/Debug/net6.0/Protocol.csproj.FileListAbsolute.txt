@@ -12,3 +12,6 @@ C:\Users\iaved\Desktop\Messanger\Protocol\obj\Debug\net6.0\Protocol.dll
 C:\Users\iaved\Desktop\Messanger\Protocol\obj\Debug\net6.0\refint\Protocol.dll
 C:\Users\iaved\Desktop\Messanger\Protocol\obj\Debug\net6.0\Protocol.pdb
 C:\Users\iaved\Desktop\Messanger\Protocol\obj\Debug\net6.0\ref\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Debug\net6.0\Protocol.exe
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Debug\net6.0\Protocol.runtimeconfig.json
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Debug\net6.0\Protocol.genruntimeconfig.cache
