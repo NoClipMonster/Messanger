@@ -21,6 +21,7 @@ namespace MessangerServer
             MyServer server = new();
 
             server.Start();
+            Thread.Sleep(1000000);
             server.WaitForCommand();
         }
     }
@@ -278,7 +279,7 @@ namespace MessangerServer
 
                             ammount += kol;
                         }
-                        Data.Command command = protocol.Deserialize(myReadBuffer,out Data.MessageType messageType);
+                        Data.Command command = protocol.Deserialize(myReadBuffer, out Data.MessageType messageType);
                         /*
                          0 - пользователь существует или пароль не верный
                          1 - успешная регистрация
@@ -367,7 +368,7 @@ namespace MessangerServer
         #region Управление сервером
         public void Stop()
         {
-            
+
             if (server.Server.LocalEndPoint == null)
             {
                 WriteLine("Сервер ещё не запущен", MsgType.Error);
@@ -377,12 +378,12 @@ namespace MessangerServer
             waitForClients.CancelAsync();
             foreach (KeyValuePair<string, TcpClient> client in onlineClients)
             {
-                
+
                 try
                 {
                     if (client.Value.Connected)
                     {
-                    byte[] msg = protocol.SerializeToByte(new Data.Command(CommandType.Disconnection,client.Key),Data.MessageType.Command);
+                        byte[] msg = protocol.SerializeToByte(new Data.Command(CommandType.Disconnection, client.Key), Data.MessageType.Command);
                         client.Value.GetStream().Write(msg, 0, msg.Length);
                         client.Value.GetStream().Close();
                         client.Value.Close();
