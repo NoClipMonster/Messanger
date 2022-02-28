@@ -1,7 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\MessangerApp2.0",
+    "\\Server\\MessangerServer",
+    "\\Server\\MessangerServer\\MessangerServer"
   ],
-  "SelectedNode": "\\Protocol.sln",
+  "SelectedNode": "\\MessangerApp2.0\\MessageControl.xaml",
   "PreviewInSolutionExplorer": false
 }

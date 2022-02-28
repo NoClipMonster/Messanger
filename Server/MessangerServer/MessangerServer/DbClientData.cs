@@ -88,5 +88,6 @@ namespace MessangerServer
 
         [Column("File")]
         public byte[]? File { get; set; }
+        public string? FileName { get; set; }
     }
 }

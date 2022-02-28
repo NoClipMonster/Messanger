@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
-using Protocol;
+﻿using Protocol;
 using System.ComponentModel;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using static MessangerServer.MyConsole;
-
+using static Protocol.Data.Command;
 
 namespace MessangerServer
 {
@@ -32,6 +30,11 @@ namespace MessangerServer
         readonly TcpListener server;
         readonly BackgroundWorker waitForClients;
         readonly BackgroundWorker waitForInput;
+
+        public Protocol.Protocol protocol = new(4);
+
+
+
 
         static readonly Dictionary<string, TcpClient> onlineClients = new();
         static readonly Dictionary<string, Timer> onlineCheckers = new();
@@ -166,7 +169,7 @@ namespace MessangerServer
                                 //TODO: Заменить везде статичный максимальный размер на переменную
                                 //TODO: Кластерная передача если больше максимального размера
 
-                                byte[] size = new byte[3];
+                                byte[] size = new byte[protocol.bytesOfSizeAmount];
                                 client.Value.GetStream().Read(size, 0, size.Length);
 
                                 int intSize = 0;
@@ -180,58 +183,54 @@ namespace MessangerServer
 
                                 while (ammount < intSize)
                                 {
-                                    byte[] buff = new byte[intSize];
+                                    byte[] buff = new byte[intSize - ammount];
                                     int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
                                     Array.Copy(buff, 0, myReadBuffer, ammount, kol);
                                     ammount += kol;
                                 }
-                                MyProtocol protocol = new(myReadBuffer);
-                                Message message;
-                                if (protocol.data != null)
+                                var message = protocol.Deserialize(myReadBuffer, out Data.MessageType messageType);
+
+                                if (message != null)
                                 {
-                                    message = new() { Date = protocol.data.sendingTime, Id = clientBase.messages.Count(), SenderID = protocol.data.senderLogin, RecipientID = protocol.data.targetLogin, Text = protocol.data.message };
+                                    Message msg;
+                                    switch (messageType)
+                                    {
+                                        case Data.MessageType.Direct:
 
-                                    protocol.data.senderLogin = client.Key;
-                                    if (protocol.data.sizeOfObject != null)
-                                    {
-                                        byte[] obj = new byte[(int)protocol.data.sizeOfObject];
-                                        ammount = 0;
-                                        DateTime dt = DateTime.Now;
-                                        while (ammount < (int)protocol.data.sizeOfObject)
-                                        {
-                                            byte[] buff = new byte[(int)protocol.data.sizeOfObject];
-                                            int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
-                                            Array.Copy(buff, 0, obj, ammount, kol);
-                                            ammount += kol;
-                                        }
-                                        WriteLine(String.Format("\n  Размер файла: {0} Kb" +
-                                             "\n  Время потраченное на получение: {1} s" +
-                                             "\n  Скорость передачи: {2} Kb/s", Math.Round((decimal)protocol.data.sizeOfObject / 1024, 3)
-                                             , (DateTime.Now - dt).TotalSeconds,
-                                             Math.Round(((decimal)protocol.data.sizeOfObject / 1024) / (decimal)(DateTime.Now - dt).TotalSeconds, 3)
-                                             ), MsgType.Client);
-                                        protocol.data.SomeObject = obj;
-                                        message.File = obj;
+                                            if (message is not Data.DirectMessage dir)
+                                                return;
+                                            if (dir.senderLogin != client.Key)
+                                                MyConsole.WriteLine("Полученный логин \"" + dir.senderLogin + "\" не соответствует заданному \"" + client.Key + "\"", MsgType.Warning);
+                                            msg = new() { Date = dir.sendingTime, SenderID = dir.senderLogin, RecipientID = dir.targetLogin, Id = clientBase.messages.Count(), Text = dir.message, File = dir.dataset.someObject, FileName = dir.dataset.nameOfObject };
+                                            clientBase.AddMessage(msg);
+                                            if (dir.targetLogin != String.Empty && onlineClients.TryGetValue(dir.targetLogin, out TcpClient? tcpClient))
+                                                if (tcpClient != null)
+                                                {
+                                                    byte[] mess = protocol.SerializeToByte(dir, Data.MessageType.Direct);
+                                                    tcpClient.GetStream().Write(mess, 0, mess.Length);
+                                                }
+                                            break;
 
+                                        case Data.MessageType.Group:
+                                            break;
+
+                                        case Data.MessageType.Command:
+
+                                            if (message is not Data.Command command)
+                                                return;
+                                            switch (command.type)
+                                            {
+                                                case CommandType.Disconnection:
+                                                    WriteLine("Клиент отключен: " + client.Value.Client.RemoteEndPoint + " : " + client.Key, MsgType.Client);
+                                                    client.Value.GetStream().Close();
+                                                    client.Value.Close();
+                                                    onlineClients.Remove(client.Key);
+                                                    onlineCheckers[client.Key].Dispose();
+                                                    onlineCheckers.Remove(client.Key);
+                                                    break;
+                                            }
+                                            break;
                                     }
-                                    if (protocol.data.closeConnection)
-                                    {
-                                        WriteLine("Клиент отключен: " + client.Value.Client.RemoteEndPoint + " : " + client.Key, MsgType.Client);
-                                        client.Value.GetStream().Close();
-                                        client.Value.Close();
-                                        onlineClients.Remove(client.Key);
-                                        onlineCheckers[client.Key].Dispose();
-                                        onlineCheckers.Remove(client.Key);
-                                    }
-                                    else
-                                    {
-                                        if (protocol.data.targetLogin != null && onlineClients.TryGetValue(protocol.data.targetLogin, out TcpClient? tcpClient))
-                                        {
-                                            if (tcpClient != null)
-                                                tcpClient.GetStream().Write(protocol.SerializeToByte, 0, protocol.SerializeToByte.Length);
-                                        }
-                                    }
-                                    clientBase.AddMessage(message);
 
                                 }
 
@@ -258,10 +257,8 @@ namespace MessangerServer
                     if (server.Pending())
                     {
                         TcpClient client = server.AcceptTcpClient();
-
-                        bool reg = Convert.ToBoolean(client.GetStream().ReadByte());
-
-                        byte[] size = new byte[4];
+                        WriteLine("Попытка подключение от: " + client.Client.RemoteEndPoint, MsgType.Client);
+                        byte[] size = new byte[protocol.bytesOfSizeAmount];
                         client.GetStream().Read(size, 0, size.Length);
 
                         int intSize = 0;
@@ -275,24 +272,28 @@ namespace MessangerServer
 
                         while (ammount < intSize)
                         {
-                            byte[] buff = new byte[intSize];
+                            byte[] buff = new byte[intSize - ammount];
                             int kol = client.GetStream().Read(buff, 0, buff.Length);
                             Array.Copy(buff, 0, myReadBuffer, ammount, kol);
 
                             ammount += kol;
                         }
-
-                        string[]? logPas = JsonConvert.DeserializeObject<string[]>(Encoding.UTF8.GetString(myReadBuffer));
-
-                        if (logPas == null)
+                        Data.Command command = protocol.Deserialize(myReadBuffer,out Data.MessageType messageType);
+                        /*
+                         0 - пользователь существует или пароль не верный
+                         1 - успешная регистрация
+                         2 - ошибка
+                         */
+                        if (command.login == String.Empty || command.password == String.Empty)
                         {
                             client.GetStream().Write(new byte[] { 2 }, 0, 1);
                             continue;
                         }
-                        if (reg)
+
+                        if (command.type == CommandType.Registration)
                         {
 
-                            if (clientBase.AddUser(logPas[0], logPas[1]))
+                            if (clientBase.AddUser(command.login, command.password))
                                 client.GetStream().Write(new byte[] { 1 }, 0, 1);
                             else
                             {
@@ -301,15 +302,15 @@ namespace MessangerServer
                             }
 
                         }
-                        else
+                        else if (command.type == CommandType.Connection)
                         {
-                            User? user = clientBase.users.FirstOrDefault(g => g.Id == logPas[0]);
+                            User? user = clientBase.users.FirstOrDefault(g => g.Id == command.login);
                             if (user == null)
                             {
                                 client.GetStream().Write(new byte[] { 0 }, 0, 1);
                                 continue;
                             }
-                            if (user.Password == logPas[1])
+                            if (user.Password == command.password)
                                 client.GetStream().Write(new byte[] { 1 }, 0, 1);
                             else
                             {
@@ -319,38 +320,38 @@ namespace MessangerServer
                         }
 
 
-                        WriteLine("Клиент подключен: " + client.Client.RemoteEndPoint + " : " + logPas[0], MsgType.Client);
+                        WriteLine("Клиент подключен: " + client.Client.RemoteEndPoint + " : " + command.login[0], MsgType.Client);
                         сollectionIsСhanging = true;
                         while (сollectionIsReading) { }
 
                         try
                         {
-                            onlineClients.Add(logPas[0], client);
+                            onlineClients.Add(command.login, client);
                         }
                         catch (Exception ex)
                         {
                             if (sett.ThrowAnException)
                                 throw;
-                            onlineClients[logPas[0]] = client;
+                            onlineClients[command.login] = client;
                             WriteLine("onlineClients.Add: " + ex.Message, MsgType.Error);
                         }
-
                         try
                         {
-                            onlineCheckers.Add(logPas[0], new(timerCallback, logPas[0], 0, 5 * 1000));
+                            onlineCheckers.Add(command.login, new(timerCallback, command.login, 0, 5 * 1000));
                         }
                         catch (Exception ex)
                         {
                             if (sett.ThrowAnException)
                                 throw;
-                            onlineClients[logPas[0]] = client;
+                            onlineCheckers[command.login] = new(timerCallback, command.login, 0, 5 * 1000);
                             WriteLine("onlineCheckers.Add: " + ex.Message, MsgType.Error);
                         }
                         сollectionIsСhanging = false;
 
                     }
                     else
-                        continue;
+                        Thread.Sleep(250);
+                    continue;
                 }
                 catch (Exception ex)
                 {
@@ -366,6 +367,7 @@ namespace MessangerServer
         #region Управление сервером
         public void Stop()
         {
+            
             if (server.Server.LocalEndPoint == null)
             {
                 WriteLine("Сервер ещё не запущен", MsgType.Error);
@@ -375,13 +377,13 @@ namespace MessangerServer
             waitForClients.CancelAsync();
             foreach (KeyValuePair<string, TcpClient> client in onlineClients)
             {
-
+                
                 try
                 {
-                    MyProtocol protocol = new(new Data { closeConnection = true, senderLogin = "server", targetLogin = client.Key });
                     if (client.Value.Connected)
                     {
-                        client.Value.GetStream().Write(protocol.SerializeToByte, 0, protocol.SerializeToByte.Length);
+                    byte[] msg = protocol.SerializeToByte(new Data.Command(CommandType.Disconnection,client.Key),Data.MessageType.Command);
+                        client.Value.GetStream().Write(msg, 0, msg.Length);
                         client.Value.GetStream().Close();
                         client.Value.Close();
                     }

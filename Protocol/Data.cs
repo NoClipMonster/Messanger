@@ -2,77 +2,86 @@
 
 namespace Protocol
 {
-    public enum MessageType { Direct, Group, Command };
-    public class Command
+    public class Data
     {
-        public enum CommandType { Connection, Disconnection }
-        public CommandType type;
-        public string login;
-        public string password;
-        public Command(CommandType type,string login,string password = "")
+        public enum MessageType { Direct, Group, Command };
+
+        //TODO: уточнить сериализацию
+        public class Command
         {
-            switch (type)
+            public enum CommandType { Connection, Disconnection, Registration }
+            public CommandType type;
+            public string login;
+            public string password;
+            public Command(CommandType type, string login, string password = "")
             {
-                case CommandType.Connection:
-                    this.type = type;
-                    this.login = login;
-                    this.password = password;
-                    break;
-                    case CommandType.Disconnection:
-                    this.type = type;
-                    this.login = login;
-                    break;
-            }
-        }
-        public Command()
-        {
-
-        }
-    }
-
-    public class DirectMessage : Message
-    {
-        public string targetLogin = String.Empty;
-    }
-
-    public class GroupMessage : Message
-    {
-        public string groupIdLogin = String.Empty;
-    }
-
-    public class Message
-    {
-        public string senderLogin = String.Empty;
-        public DateTime sendingTime = DateTime.Now;
-        public string message = String.Empty;
-        public Dataset? dataset;
-    }
-
-    public class Dataset
-    {
-        public BackgroundWorker fileWaiter;
-        public Dataset(string path)
-        {
-            fileWaiter = new BackgroundWorker();
-            fileWaiter.DoWork += FileWaiter_DoWork;
-            fileWaiter.RunWorkerAsync(path);
-
-            void FileWaiter_DoWork(object? sender, DoWorkEventArgs e)
-            {
-                if (e.Argument != null)
+                switch (type)
                 {
-                    someObject = File.ReadAllBytes((string)e.Argument);
-                    sizeOfObject = someObject.Length;
-                    nameOfObject = new FileInfo((string)e.Argument).Name;
+                    case CommandType.Connection:
+                    case CommandType.Registration:
+                        this.type = type;
+                        this.login = login;
+                        this.password = password;
+                        break;
+                    case CommandType.Disconnection:
+                        this.type = type;
+                        this.login = login;
+                        break;
                 }
             }
+            public Command()
+            {
+                this.login = String.Empty;
+                this.password = String.Empty;
+            }
         }
 
-        public byte[] someObject = Array.Empty<byte>();
+        public class DirectMessage : Message
+        {
+            public string targetLogin = String.Empty;
+        }
 
-        public int sizeOfObject = -1;
+        public class GroupMessage : Message
+        {
+            public string groupIdLogin = String.Empty;
+        }
 
-        public string nameOfObject = String.Empty;
+        public class Message
+        {
+            public string senderLogin = String.Empty;
+            public DateTime sendingTime = DateTime.Now;
+            public string message = String.Empty;
+            public Dataset? dataset;
+        }
+
+        public class Dataset
+        {
+            public BackgroundWorker fileWaiter;
+            public Dataset(string path)
+            {
+                fileWaiter = new BackgroundWorker();
+                fileWaiter.DoWork += FileWaiter_DoWork;
+                fileWaiter.RunWorkerAsync(path);
+
+                void FileWaiter_DoWork(object? sender, DoWorkEventArgs e)
+                {
+                    if (e.Argument != null)
+                    {
+                        someObject = File.ReadAllBytes((string)e.Argument);
+                        sizeOfObject = someObject.Length;
+                        nameOfObject = new FileInfo((string)e.Argument).Name;
+                    }
+                }
+            }
+
+            public byte[] someObject = Array.Empty<byte>();
+
+            public int sizeOfObject = -1;
+
+            public string nameOfObject = String.Empty;
+
+        }
 
     }
+   
 }

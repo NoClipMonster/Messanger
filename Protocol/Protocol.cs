@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System.Text;
+using static Protocol.Data;
 
 namespace Protocol
 {
+
+    /* Пример использования
     public class Protocol
     {
         static void Main()
@@ -24,6 +27,7 @@ namespace Protocol
 
             MyProtocol mydirectProtocol2 = new(buffer2);
 
+
             buffer = mygroupProtocol.SerializeToByte();
             buffer2 = new byte[buffer.Length - 4];
             Array.Copy(buffer, 4, buffer2, 0, buffer2.Length);
@@ -37,6 +41,7 @@ namespace Protocol
 
             MyProtocol mycommandProtocol2 = new(buffer2);
 
+
             buffer = mycommanddisProtocol.SerializeToByte();
             buffer2 = new byte[buffer.Length - 4];
             Array.Copy(buffer, 4, buffer2, 0, buffer2.Length);
@@ -45,41 +50,15 @@ namespace Protocol
 
         }
     }
-
-    public class MyProtocol
+    */
+    public class Protocol
     {
-        MessageType messageType;
-        public MessageType MessageType
+        public readonly int bytesOfSizeAmount;
+        public Protocol(int bytesOfSizeAmount)
         {
-            get
-            {
-                return messageType;
-            }
-        }
-        public const int bytesOfSizeAmount = 4;
-        DirectMessage directMessage;
-        GroupMessage groupMessage;
-        Command command;
-        public MyProtocol(byte[] innerData)
-        {
-            Deserialize(innerData);
+            this.bytesOfSizeAmount = bytesOfSizeAmount;
         }
 
-        public MyProtocol(DirectMessage message)
-        {
-            directMessage = message;
-            messageType = MessageType.Direct;
-        }
-        public MyProtocol(GroupMessage message)
-        {
-            groupMessage = message;
-            messageType = MessageType.Group;
-        }
-        public MyProtocol(Command command)
-        {
-            this.command = command;
-            messageType = MessageType.Command;
-        }
         /// <summary>
         /// <para>
         /// Размер пакета в количестве <paramref name="bytesOfSizeAmount"/> байт 
@@ -92,35 +71,33 @@ namespace Protocol
         /// </para>
         /// </summary>
         /// <returns>Размер, тип, и содержимое пакета в виде byte[]</returns>
-        public byte[] SerializeToByte()
+       
+        public byte[] SerializeToByte(dynamic Data, MessageType messageType)
         {
+            if (Data == null)
+                return Array.Empty<byte>();
             byte[] byteData;
             Dataset? dataset = null;
-            switch (MessageType)
+
+            switch (messageType)
             {
                 case MessageType.Direct:
-                    if (directMessage == null)
-                        return Array.Empty<byte>();
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(directMessage));
-                    dataset = directMessage.dataset;
+                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as DirectMessage));
                     break;
 
                 case MessageType.Group:
-                    if (groupMessage == null)
-                        return Array.Empty<byte>();
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(groupMessage));
-                    dataset = groupMessage.dataset;
+                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as GroupMessage));
                     break;
 
                 case MessageType.Command:
-                    if (command == null)
-                        return Array.Empty<byte>();
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
+                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as Command));
                     break;
                 default:
                     byteData = Array.Empty<byte>();
                     break;
             }
+            if (messageType != MessageType.Command)
+                dataset = Data.Dataset;
             if (byteData.Length > Math.Pow(256, bytesOfSizeAmount))
             {
                 throw new Exception("Packet size is too large");
@@ -134,7 +111,7 @@ namespace Protocol
 
             byte[] message = new byte[size.Length + 1 + byteData.Length];
             size.CopyTo(message, 0);
-            message[size.Length] = (byte)MessageType;
+            message[size.Length] = (byte)messageType;
             if (dataset != null)
             {
                 while (dataset.fileWaiter.IsBusy)
@@ -150,7 +127,7 @@ namespace Protocol
         /// 2-command
         /// </summary>
         /// <param name="innerData"></param>
-        public void Deserialize(byte[] innerData)
+        public dynamic Deserialize(byte[] innerData,out MessageType messageType)
         {
             if (innerData != null)
             {
@@ -158,25 +135,21 @@ namespace Protocol
                 switch (innerData[0])
                 {
                     case 0:
-                        directMessage = JsonConvert.DeserializeObject<DirectMessage>(str) ?? new();
                         messageType = MessageType.Direct;
-                        break;
+                        return JsonConvert.DeserializeObject<DirectMessage>(str) ?? new DirectMessage();
+                       
                     case 1:
-                        groupMessage = JsonConvert.DeserializeObject<GroupMessage>(str) ?? new();
                         messageType = MessageType.Group;
-                        break;
+                        return JsonConvert.DeserializeObject<GroupMessage>(str) ?? new GroupMessage();
+                        
                     case 2:
-                        command = JsonConvert.DeserializeObject<Command>(str) ?? new();
                         messageType = MessageType.Command;
-                        break;
-                    default:
-                        break;
+                        return JsonConvert.DeserializeObject<Command>(str) ?? new Command();
                 }
 
             }
+            messageType = MessageType.Command;
+            return null;
         }
-
-
-
     }
 }
