@@ -5,10 +5,31 @@ namespace Protocol
     public enum MessageType { Direct, Group, Command };
     public class Command
     {
-        public enum CommandType {Connection, Disconnection}
-        public CommandType commandType;
-        public string command = string.Empty;
+        public enum CommandType { Connection, Disconnection }
+        public CommandType type;
+        public string login;
+        public string password;
+        public Command(CommandType type,string login,string password = "")
+        {
+            switch (type)
+            {
+                case CommandType.Connection:
+                    this.type = type;
+                    this.login = login;
+                    this.password = password;
+                    break;
+                    case CommandType.Disconnection:
+                    this.type = type;
+                    this.login = login;
+                    break;
+            }
+        }
+        public Command()
+        {
+
+        }
     }
+
     public class DirectMessage : Message
     {
         public string targetLogin = String.Empty;

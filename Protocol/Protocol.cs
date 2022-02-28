@@ -9,12 +9,13 @@ namespace Protocol
         {
             DirectMessage direct = new() { targetLogin = "someone", senderLogin = "Admin", message = "Привет", sendingTime = DateTime.Now, dataset = new Dataset(@"C:\Users\iaved\Desktop\привет.txt") };
             GroupMessage group = new() { groupIdLogin = "anyone", senderLogin = "Admin", message = "Привет", sendingTime = DateTime.Now, dataset = new Dataset(@"C:\Users\iaved\Desktop\привет.txt") };
-            Command command = new() { commandType = Command.CommandType.Connection, command = "админ|админ" };
+            Command commandCon = new(Command.CommandType.Connection, "adminlog", "adminpass");
+            Command commandDis = new(Command.CommandType.Disconnection, "adminlog");
 
             MyProtocol mydirectProtocol = new(direct);
             MyProtocol mygroupProtocol = new(group);
-            MyProtocol mycommandProtocol = new(command);
-
+            MyProtocol mycommandconProtocol = new(commandCon);
+            MyProtocol mycommanddisProtocol = new(commandDis);
             byte[] buffer, buffer2;
 
             buffer = mydirectProtocol.SerializeToByte();
@@ -23,7 +24,6 @@ namespace Protocol
 
             MyProtocol mydirectProtocol2 = new(buffer2);
 
-
             buffer = mygroupProtocol.SerializeToByte();
             buffer2 = new byte[buffer.Length - 4];
             Array.Copy(buffer, 4, buffer2, 0, buffer2.Length);
@@ -31,11 +31,17 @@ namespace Protocol
             MyProtocol mygroupProtocol2 = new(buffer2);
 
 
-            buffer = mycommandProtocol.SerializeToByte();
+            buffer = mycommandconProtocol.SerializeToByte();
             buffer2 = new byte[buffer.Length - 4];
             Array.Copy(buffer, 4, buffer2, 0, buffer2.Length);
 
             MyProtocol mycommandProtocol2 = new(buffer2);
+
+            buffer = mycommanddisProtocol.SerializeToByte();
+            buffer2 = new byte[buffer.Length - 4];
+            Array.Copy(buffer, 4, buffer2, 0, buffer2.Length);
+
+            MyProtocol mycommanddisProtocol2 = new(buffer2);
 
         }
     }
