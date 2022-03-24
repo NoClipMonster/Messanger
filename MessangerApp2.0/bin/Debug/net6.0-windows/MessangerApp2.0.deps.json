@@ -9,6 +9,7 @@
       "MessangerApp2.0/1.0.0": {
         "dependencies": {
           "Newtonsoft.Json": "13.0.1",
+          "Protocol": "1.0.0",
           "System.Data.SqlClient": "4.8.3",
           "System.Linq": "4.3.0",
           "linq2db": "3.6.0"
@@ -203,6 +204,11 @@
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
+      },
+      "Protocol/1.0.0": {
+        "runtime": {
+          "Protocol.dll": {}
+        }
       }
     }
   },
@@ -386,6 +392,11 @@
       "sha512": "sha512-LbSxKEdOUhVe8BezB/9uOGGppt+nZf6e1VFyw6v3DN6lqitm0OSn2uXMOdtP0M3W4iMcqcivm2J6UgqiwwnXiA==",
       "path": "system.threading.tasks/4.3.0",
       "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
+    },
+    "Protocol/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

@@ -71,33 +71,40 @@ namespace Protocol
         /// </para>
         /// </summary>
         /// <returns>Размер, тип, и содержимое пакета в виде byte[]</returns>
-       
+
         public byte[] SerializeToByte(dynamic Data, MessageType messageType)
         {
             if (Data == null)
                 return Array.Empty<byte>();
-            byte[] byteData;
+            byte[] bufByteData;
             Dataset? dataset = null;
 
-            switch (messageType)
-            {
-                case MessageType.Direct:
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as DirectMessage));
-                    break;
+            /*  switch (messageType)
+              {
+                  case MessageType.Direct:
+                      bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data as DirectMessage));
+                      break;
 
-                case MessageType.Group:
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as GroupMessage));
-                    break;
+                  case MessageType.Group:
+                      bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data as GroupMessage));
+                      break;
 
-                case MessageType.Command:
-                    byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data as Command));
-                    break;
-                default:
-                    byteData = Array.Empty<byte>();
-                    break;
-            }
-            if (messageType != MessageType.Command)
-                dataset = Data.Dataset;
+                  case MessageType.Command:
+                      bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data as Command));
+                      break;
+                  case MessageType.Status:
+                      bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data));
+                      break;
+                  default:
+                      bufByteData = Array.Empty<byte>();
+                      break;
+              }*/
+            bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data));
+            if (messageType != MessageType.Command && messageType != MessageType.Answer && messageType != MessageType.Status)
+                dataset = Data.dataset;
+            byte[] byteData = new byte[bufByteData.Length + 1];
+            byteData[0] = (byte)messageType;
+            Array.Copy(bufByteData, 0, byteData, 1, bufByteData.Length);
             if (byteData.Length > Math.Pow(256, bytesOfSizeAmount))
             {
                 throw new Exception("Packet size is too large");
@@ -109,46 +116,39 @@ namespace Protocol
                 size[i] = (byte)((byteData.Length % Math.Pow(256, size.Length - i)) / Math.Pow(256, size.Length - (i + 1)));
             }
 
-            byte[] message = new byte[size.Length + 1 + byteData.Length];
+            byte[] message = new byte[size.Length + byteData.Length];
             size.CopyTo(message, 0);
-            message[size.Length] = (byte)messageType;
             if (dataset != null)
             {
                 while (dataset.fileWaiter.IsBusy)
                 { };
             }
-            byteData.CopyTo(message, size.Length + 1);
+
+            byteData.CopyTo(message, size.Length);
             return message;
         }
 
-        /// <summary>
-        /// 0-direct
-        /// 1-group
-        /// 2-command
-        /// </summary>
-        /// <param name="innerData"></param>
-        public dynamic Deserialize(byte[] innerData,out MessageType messageType)
+        public dynamic Deserialize(byte[] innerData)
         {
             if (innerData != null)
             {
-                string str = Encoding.UTF8.GetString(innerData, 1, innerData.Length - 1);
+                string str = Encoding.Unicode.GetString(innerData, 1, innerData.Length - 1);
                 switch (innerData[0])
                 {
                     case 0:
-                        messageType = MessageType.Direct;
                         return JsonConvert.DeserializeObject<DirectMessage>(str) ?? new DirectMessage();
-                       
                     case 1:
-                        messageType = MessageType.Group;
                         return JsonConvert.DeserializeObject<GroupMessage>(str) ?? new GroupMessage();
-                        
+
                     case 2:
-                        messageType = MessageType.Command;
                         return JsonConvert.DeserializeObject<Command>(str) ?? new Command();
+                    case 3:
+                        return JsonConvert.DeserializeObject<StatusType>(str);
+                    case 4:
+                        return JsonConvert.DeserializeObject(str) ?? null;
                 }
 
             }
-            messageType = MessageType.Command;
             return null;
         }
     }

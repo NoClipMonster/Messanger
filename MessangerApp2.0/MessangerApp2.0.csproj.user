@@ -7,30 +7,36 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="ContactUC.xaml.cs">
+    <Compile Update="Controls\ContactUC.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="MainWindow.xaml.cs">
+    <Compile Update="Controls\MessageControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="MessageControl.xaml.cs">
+    <Compile Update="Controls\FindUser.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="RegistrationWindow.xaml.cs">
+    <Compile Update="Windows\MainWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Windows\RegistrationWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="ContactUC.xaml">
+    <Page Update="Controls\ContactUC.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="MainWindow.xaml">
+    <Page Update="Controls\MessageControl.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="MessageControl.xaml">
+    <Page Update="Controls\FindUser.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="RegistrationWindow.xaml">
+    <Page Update="Windows\MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Windows\RegistrationWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

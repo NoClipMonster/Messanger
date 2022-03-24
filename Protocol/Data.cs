@@ -4,36 +4,123 @@ namespace Protocol
 {
     public class Data
     {
-        public enum MessageType { Direct, Group, Command };
+
+        public class Answer
+        {
+            public class Session
+            {
+                public byte[] SessionId = Array.Empty<byte>();
+            }
+
+            public class File
+            {
+                public int Id { get; set; } = -1;
+
+                public byte[] FileData { get; set; } = Array.Empty<byte>();
+
+                public string FileName { get; set; } = String.Empty;
+            }
+
+            public class Group
+            {
+                public string Id { get; set; } = String.Empty;
+
+                public string Name { get; set; } = String.Empty;
+
+                public string Description { get; set; } = String.Empty;
+            }
+
+            public class Message
+            {
+                public string SenderID { get; set; } = "";
+
+                public string RecipientID { get; set; } = "";
+
+                bool isgroup;
+
+                public bool IsGroup { get { return isgroup; } set { isgroup = bool.Parse(value.ToString()); } }
+
+                public DateTime Date { get; set; } = DateTime.Now;
+
+                public string Text { get; set; } = "";
+
+                public int? FileId { get; set; }
+
+            }
+
+            public class User
+            {
+                public string Id { get; set; } = "";
+
+                public string Password { get; set; } = "";
+
+                public string Name { get; set; } = "";
+
+                public string Description { get; set; } = "";
+            }
+
+            public class Membership
+            {
+                public string UserId { get; set; } = String.Empty;
+
+                public string GroupId { get; set; } = String.Empty;
+
+                public string Level { get; set; } = String.Empty;
+            }
+        }
+        public enum MessageType { Direct, Group, Command, Status, Answer };
+        public enum StatusType { Ok, AuthorizationDenied, InvalidSessionId, Error };
 
         //TODO: уточнить сериализацию
-        public class Command
+        public class BaseQuery
         {
-            public enum CommandType { Connection, Disconnection, Registration }
+            public byte[] SessionId = Array.Empty<byte>();
+        }
+
+        public class Command : BaseQuery
+        {
+            public enum CommandType { Connection, Disconnection, Registration, FindUsers, GetMessages, GetFile }
             public CommandType type;
-            public string login;
-            public string password;
-            public Command(CommandType type, string login, string password = "")
+            public Connection? connection;
+            public Registration? registration;
+            public FindUser? findUser;
+            public GetMessages? getMessages;
+            public GetFile? getFile;
+
+            public class Connection
             {
-                switch (type)
-                {
-                    case CommandType.Connection:
-                    case CommandType.Registration:
-                        this.type = type;
-                        this.login = login;
-                        this.password = password;
-                        break;
-                    case CommandType.Disconnection:
-                        this.type = type;
-                        this.login = login;
-                        break;
-                }
+                public string Login = String.Empty;
+                public string Password = String.Empty;
             }
-            public Command()
+            public class Registration
             {
-                this.login = String.Empty;
-                this.password = String.Empty;
+                public string Login = String.Empty;
+                public string Password = String.Empty;
+                public string Name = String.Empty;
+                public string Description = String.Empty;
             }
+            public class FindUser
+            {
+                public string Id = String.Empty;
+            }
+            public class GetMessages
+            {
+                public string Id = String.Empty;
+                public DateTime Start = DateTime.MinValue;
+                public DateTime End = DateTime.MaxValue;
+            }
+            public class GetFile
+            {
+                public int Id = 0;
+            }
+        }
+
+        public class Message : BaseQuery
+        {
+            public string senderLogin = String.Empty;
+            public DateTime sendingTime = DateTime.Now;
+            public string message = String.Empty;
+            public Dataset? dataset;
         }
 
         public class DirectMessage : Message
@@ -43,15 +130,7 @@ namespace Protocol
 
         public class GroupMessage : Message
         {
-            public string groupIdLogin = String.Empty;
-        }
-
-        public class Message
-        {
-            public string senderLogin = String.Empty;
-            public DateTime sendingTime = DateTime.Now;
-            public string message = String.Empty;
-            public Dataset? dataset;
+            public string groupId = String.Empty;
         }
 
         public class Dataset
@@ -83,5 +162,5 @@ namespace Protocol
         }
 
     }
-   
+
 }

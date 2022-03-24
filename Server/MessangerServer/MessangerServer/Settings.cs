@@ -51,13 +51,13 @@ namespace MessangerServer
             }
         }
 
-        public void Save() => File.WriteAllText(Path, JsonConvert.SerializeObject(this));
+        public void Save() =>System.IO.File.WriteAllText(Path, JsonConvert.SerializeObject(this));
 
         public void Load()
         {
-            if (File.Exists(Path))
+            if (System.IO.File.Exists(Path))
             {
-                object? obj = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Path));
+                object? obj = JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText(Path));
                 if (obj is Settings sett)
                 {
                     ip = sett.ip;

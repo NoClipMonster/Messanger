@@ -6,13 +6,13 @@ using System.Net.Sockets;
 using static MessangerServer.MyConsole;
 using static Protocol.Data.Command;
 
+//TODO: Sessions
+
+
 namespace MessangerServer
 {
     public class Server
     {
-        //TODO: Попробовать дать каждому пользователь по потоку
-        //TODO: Сохранение сообщений
-        //TODO: Ошибка уже существующего ключа при подключении уже подключенного пользолвателя
         static void Main()
         {
             Console.Title = "Messanger Server";
@@ -21,7 +21,6 @@ namespace MessangerServer
             MyServer server = new();
 
             server.Start();
-            Thread.Sleep(1000000);
             server.WaitForCommand();
         }
     }
@@ -29,22 +28,20 @@ namespace MessangerServer
     {
         readonly Settings sett = new();
         readonly TcpListener server;
-        readonly BackgroundWorker waitForClients;
-        readonly BackgroundWorker waitForInput;
+        readonly BackgroundWorker WaitForNewData;
+        QueryHandler queryHandler;
 
         public Protocol.Protocol protocol = new(4);
 
-
-
-
-        static readonly Dictionary<string, TcpClient> onlineClients = new();
-        static readonly Dictionary<string, Timer> onlineCheckers = new();
-        readonly TimerCallback timerCallback = new(CheckForConnection);
         bool сollectionIsСhanging = false;
         bool сollectionIsReading = false;
-        readonly DbClientData clientBase;
+      
+
+        int receiveTimeOut = 5000;//МС
+
+
         public MyServer()
-        {
+        {  
             try
             {
                 sett.Load();
@@ -57,19 +54,17 @@ namespace MessangerServer
             }
 
 
-            clientBase = new();
+            queryHandler = new();
             WriteLine("База 'Логин/пароль' загруженна");
-
+            
             IPAddress localAddr = IPAddress.Parse(sett.Ip);
             server = new(localAddr, sett.Port);
-            waitForClients = new();
-            waitForInput = new();
+            WaitForNewData = new();
+           
+            WaitForNewData.WorkerSupportsCancellation = true;
 
-            waitForClients.WorkerSupportsCancellation = true;
-            waitForInput.WorkerSupportsCancellation = true;
-
-            waitForClients.DoWork += WaitForClients_DoWork;
-            waitForInput.DoWork += WaitForInput_DoWork;
+            WaitForNewData.DoWork += WaitForNewData_DoWork;
+           
 
         }
 
@@ -78,7 +73,7 @@ namespace MessangerServer
         public void WaitForCommand()
         {
             string[] commands = { "Start", "Stop", "Restart", "Close", "Clients", "Throw exceptions", "Show settings" };
-
+            WriteLine("Ожидание комманды");
             while (true)
             {
                 string? command = Console.ReadLine();
@@ -120,13 +115,9 @@ namespace MessangerServer
                         break;
                     case "clients":
                     case "5":
-                        if (onlineClients.Count == 0)
-                            WriteLine("Пусто", MsgType.Warning);
-                        while (сollectionIsСhanging) { }
-                        сollectionIsReading = true;
-                        foreach (KeyValuePair<string, TcpClient> client in onlineClients)
-                            WriteLine(String.Format("Клиент: {0}: IP: {1}", client.Key, client.Value.Client.RemoteEndPoint), MsgType.Client);
-                        сollectionIsReading = false;
+                      //TODO: Добавить вывод списка клиентов
+                            WriteLine("Тут пусто, нужно добавить функционал", MsgType.Error);
+                     
                         break;
 
                     case "throw exceptions":
@@ -143,279 +134,72 @@ namespace MessangerServer
             }
         }
 
-        void WaitForInput_DoWork(object? sender, DoWorkEventArgs e)
+        void WaitForNewData_DoWork(object? sender, DoWorkEventArgs e)
         {
-            while (!waitForInput.CancellationPending)
-            {
-
-                while (сollectionIsСhanging)
-                {
-
-                }
-                сollectionIsReading = true;
-                foreach (KeyValuePair<string, TcpClient> client in onlineClients)
-                {
-                    if (client.Value == null)
-                        continue;
-                    if (waitForInput.CancellationPending)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
-                    if (client.Value.Connected)
-                        if (client.Value.GetStream().DataAvailable)
-                            try
-                            {
-                                WriteLine("Получение данных от клиента", MsgType.Client);
-                                //TODO: Заменить везде статичный максимальный размер на переменную
-                                //TODO: Кластерная передача если больше максимального размера
-
-                                byte[] size = new byte[protocol.bytesOfSizeAmount];
-                                client.Value.GetStream().Read(size, 0, size.Length);
-
-                                int intSize = 0;
-                                for (int i = size.Length - 1; i >= 0; i--)
-                                {
-                                    intSize += size[i] * (int)Math.Pow(256, size.Length - (i + 1));
-                                }
-
-                                byte[] myReadBuffer = new byte[intSize];
-                                int ammount = 0;
-
-                                while (ammount < intSize)
-                                {
-                                    byte[] buff = new byte[intSize - ammount];
-                                    int kol = client.Value.GetStream().Read(buff, 0, buff.Length);
-                                    Array.Copy(buff, 0, myReadBuffer, ammount, kol);
-                                    ammount += kol;
-                                }
-                                var message = protocol.Deserialize(myReadBuffer, out Data.MessageType messageType);
-
-                                if (message != null)
-                                {
-                                    Message msg;
-                                    switch (messageType)
-                                    {
-                                        case Data.MessageType.Direct:
-
-                                            if (message is not Data.DirectMessage dir)
-                                                return;
-                                            if (dir.senderLogin != client.Key)
-                                                MyConsole.WriteLine("Полученный логин \"" + dir.senderLogin + "\" не соответствует заданному \"" + client.Key + "\"", MsgType.Warning);
-                                            msg = new() { Date = dir.sendingTime, SenderID = dir.senderLogin, RecipientID = dir.targetLogin, Id = clientBase.messages.Count(), Text = dir.message, File = dir.dataset.someObject, FileName = dir.dataset.nameOfObject };
-                                            clientBase.AddMessage(msg);
-                                            if (dir.targetLogin != String.Empty && onlineClients.TryGetValue(dir.targetLogin, out TcpClient? tcpClient))
-                                                if (tcpClient != null)
-                                                {
-                                                    byte[] mess = protocol.SerializeToByte(dir, Data.MessageType.Direct);
-                                                    tcpClient.GetStream().Write(mess, 0, mess.Length);
-                                                }
-                                            break;
-
-                                        case Data.MessageType.Group:
-                                            break;
-
-                                        case Data.MessageType.Command:
-
-                                            if (message is not Data.Command command)
-                                                return;
-                                            switch (command.type)
-                                            {
-                                                case CommandType.Disconnection:
-                                                    WriteLine("Клиент отключен: " + client.Value.Client.RemoteEndPoint + " : " + client.Key, MsgType.Client);
-                                                    client.Value.GetStream().Close();
-                                                    client.Value.Close();
-                                                    onlineClients.Remove(client.Key);
-                                                    onlineCheckers[client.Key].Dispose();
-                                                    onlineCheckers.Remove(client.Key);
-                                                    break;
-                                            }
-                                            break;
-                                    }
-
-                                }
-
-                            }
-                            catch (Exception ex)
-                            {
-                                if (sett.ThrowAnException)
-                                    throw;
-                                WriteLine("WaitForInput: " + ex.Message, MsgType.Error);
-                            }
-
-                }
-                сollectionIsReading = false;
-            }
-            e.Cancel = true;
+            BackgroundWorker worker = new();
+            worker.DoWork += Receive_Data_DoWork;
+            worker.RunWorkerAsync(server.AcceptTcpClient());
         }
 
-        void WaitForClients_DoWork(object? sender, DoWorkEventArgs e)
+        void Receive_Data_DoWork(object? sender, DoWorkEventArgs e)
         {
-            while (!waitForClients.CancellationPending)
+            //TODO: Cancle
+            //TODO: Добавить таймаут сессии
+
+
+            if (e.Argument is not TcpClient client)
+                return;
+
+            WriteLine("Запрос от: " + client.Client.RemoteEndPoint, MsgType.Client);
+
+            byte[] size = new byte[protocol.bytesOfSizeAmount];
+
+            client.GetStream().Read(size, 0, size.Length);
+
+            int intSize = 0;
+
+            for (int i = size.Length - 1; i >= 0; i--)
             {
-                try
-                {
-                    if (server.Pending())
-                    {
-                        TcpClient client = server.AcceptTcpClient();
-                        WriteLine("Попытка подключение от: " + client.Client.RemoteEndPoint, MsgType.Client);
-                        byte[] size = new byte[protocol.bytesOfSizeAmount];
-                        client.GetStream().Read(size, 0, size.Length);
-
-                        int intSize = 0;
-                        for (int i = size.Length - 1; i >= 0; i--)
-                        {
-                            intSize += size[i] * (int)Math.Pow(256, size.Length - (i + 1));
-                        }
-
-                        byte[] myReadBuffer = new byte[intSize];
-                        int ammount = 0;
-
-                        while (ammount < intSize)
-                        {
-                            byte[] buff = new byte[intSize - ammount];
-                            int kol = client.GetStream().Read(buff, 0, buff.Length);
-                            Array.Copy(buff, 0, myReadBuffer, ammount, kol);
-
-                            ammount += kol;
-                        }
-                        Data.Command command = protocol.Deserialize(myReadBuffer, out Data.MessageType messageType);
-                        /*
-                         0 - пользователь существует или пароль не верный
-                         1 - успешная регистрация
-                         2 - ошибка
-                         */
-                        if (command.login == String.Empty || command.password == String.Empty)
-                        {
-                            client.GetStream().Write(new byte[] { 2 }, 0, 1);
-                            continue;
-                        }
-
-                        if (command.type == CommandType.Registration)
-                        {
-
-                            if (clientBase.AddUser(command.login, command.password))
-                                client.GetStream().Write(new byte[] { 1 }, 0, 1);
-                            else
-                            {
-                                client.GetStream().Write(new byte[] { 0 }, 0, 1);
-                                continue;
-                            }
-
-                        }
-                        else if (command.type == CommandType.Connection)
-                        {
-                            User? user = clientBase.users.FirstOrDefault(g => g.Id == command.login);
-                            if (user == null)
-                            {
-                                client.GetStream().Write(new byte[] { 0 }, 0, 1);
-                                continue;
-                            }
-                            if (user.Password == command.password)
-                                client.GetStream().Write(new byte[] { 1 }, 0, 1);
-                            else
-                            {
-                                client.GetStream().Write(new byte[] { 0 }, 0, 1);
-                                continue;
-                            }
-                        }
-
-
-                        WriteLine("Клиент подключен: " + client.Client.RemoteEndPoint + " : " + command.login[0], MsgType.Client);
-                        сollectionIsСhanging = true;
-                        while (сollectionIsReading) { }
-
-                        try
-                        {
-                            onlineClients.Add(command.login, client);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (sett.ThrowAnException)
-                                throw;
-                            onlineClients[command.login] = client;
-                            WriteLine("onlineClients.Add: " + ex.Message, MsgType.Error);
-                        }
-                        try
-                        {
-                            onlineCheckers.Add(command.login, new(timerCallback, command.login, 0, 5 * 1000));
-                        }
-                        catch (Exception ex)
-                        {
-                            if (sett.ThrowAnException)
-                                throw;
-                            onlineCheckers[command.login] = new(timerCallback, command.login, 0, 5 * 1000);
-                            WriteLine("onlineCheckers.Add: " + ex.Message, MsgType.Error);
-                        }
-                        сollectionIsСhanging = false;
-
-                    }
-                    else
-                        Thread.Sleep(250);
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    if (sett.ThrowAnException)
-                        throw;
-                    WriteLine("waitForClients: " + ex.Message, MsgType.Error);
-                }
+                intSize += size[i] * (int)Math.Pow(256, size.Length - (i + 1));
             }
-            e.Cancel = true;
+
+            byte[] receivedBuffer = new byte[intSize];
+            int ReceivedBytes = 0;
+            DateTime lastReceiveTime = DateTime.Now;
+            while (ReceivedBytes < intSize && (DateTime.Now - lastReceiveTime).TotalMilliseconds < receiveTimeOut)
+            {
+                byte[] buff = new byte[intSize - ReceivedBytes];
+                int kol = client.GetStream().Read(buff, 0, buff.Length);
+                Array.Copy(buff, 0, receivedBuffer, ReceivedBytes, kol);
+                ReceivedBytes += kol;
+                if (kol != 0)
+                    lastReceiveTime = DateTime.Now;
+            }
+
+            client.GetStream().Write(queryHandler.Answer(protocol.Deserialize(receivedBuffer)));
         }
+
         #endregion
 
         #region Управление сервером
         public void Stop()
         {
-
             if (server.Server.LocalEndPoint == null)
             {
                 WriteLine("Сервер ещё не запущен", MsgType.Error);
                 return;
             }
-            waitForInput.CancelAsync();
-            waitForClients.CancelAsync();
-            foreach (KeyValuePair<string, TcpClient> client in onlineClients)
-            {
-
-                try
-                {
-                    if (client.Value.Connected)
-                    {
-                        byte[] msg = protocol.SerializeToByte(new Data.Command(CommandType.Disconnection, client.Key), Data.MessageType.Command);
-                        client.Value.GetStream().Write(msg, 0, msg.Length);
-                        client.Value.GetStream().Close();
-                        client.Value.Close();
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    if (sett.ThrowAnException)
-                        throw;
-                    WriteLine("Client: " + client.Value.Client.RemoteEndPoint + "\nError: " + ex.Message.ToString(), MsgType.Error);
-                }
-            }
-
-            onlineClients.Clear();
-
-            foreach (KeyValuePair<string, Timer> checker in onlineCheckers)
-            {
-                checker.Value.Dispose();
-            }
-            onlineCheckers.Clear();
+            WaitForNewData.CancelAsync();
 
             server.Stop();
 
-            while (waitForClients.IsBusy || waitForInput.IsBusy)
+            while (WaitForNewData.IsBusy)
             {
                 Console.Write(".");
                 Thread.Sleep(500);
             }
             Console.WriteLine();
             WriteLine("Сервер остановлен");
-
         }
 
         public void Start()
@@ -426,60 +210,13 @@ namespace MessangerServer
                 return;
             }
             server.Start();
-            waitForClients.RunWorkerAsync();
-            waitForInput.RunWorkerAsync();
+            WaitForNewData.RunWorkerAsync();
+          
             WriteLine("Сервер запущен");
 
         }
 
-        /* 
-         static void Backup(object? obj)
-         {
-             if (obj != null)
-             {
-                 WriteLine("Резервирование данных началось");
-
-                 Dictionary<string, string> dict = (Dictionary<string, string>)obj;
-                 string[][] bb = new string[dict.Count][];
-                 for (int i = 0; i < bb.Length; i++)
-                     bb[i] = new string[] { dict.Keys.ElementAt(i), dict.Values.ElementAt(i) };
-
-                 Task task = File.WriteAllTextAsync(loginsDir, JsonConvert.SerializeObject(bb));
-                 while (task.Status == TaskStatus.Running)
-                 {
-                     Console.Write(".");
-                 }
-                 WriteLine("Резервирование данных выполненно");
-             }
-         }
-        */
         #endregion
-
-        static void CheckForConnection(object? obj)
-        {
-
-            if (obj is not string name)
-                return;
-
-            TcpClient client = onlineClients[name];
-            IPGlobalProperties ipProperties = IPGlobalProperties.GetIPGlobalProperties();
-            TcpConnectionInformation[] tcpConnections = ipProperties.GetActiveTcpConnections().Where(x => x.LocalEndPoint.Equals(client.Client.LocalEndPoint) && x.RemoteEndPoint.Equals(client.Client.RemoteEndPoint)).ToArray();
-
-            if (tcpConnections != null && tcpConnections.Length > 0)
-            {
-                TcpState stateOfConnection = tcpConnections.First().State;
-                if (stateOfConnection != TcpState.Established)
-                {
-                    WriteLine("Обнаружен разрыв c " + client.Client.RemoteEndPoint + " : " + name, MsgType.Warning);
-                    onlineClients.Remove(name);
-                    onlineCheckers[name].Dispose();
-                    onlineCheckers.Remove(name);
-                }
-            }
-        }
-
-
-
 
     }
 }
