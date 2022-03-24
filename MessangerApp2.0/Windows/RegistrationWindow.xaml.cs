@@ -21,10 +21,11 @@ namespace MessangerApp2._0
 
         private void ClientSideModule_OnAnswerReceived(dynamic message)
         {
+            
             switch (message)
             {
                 case byte[]:
-                 
+
                     break;
             }
         }

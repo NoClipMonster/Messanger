@@ -69,12 +69,20 @@ namespace Protocol
             }
         }
         public enum MessageType { Direct, Group, Command, Status, Answer };
-        public enum StatusType { Ok, AuthorizationDenied, InvalidSessionId, Error };
+        public enum StatusType { Ok, AuthorizationDenied, InvalidSessionId, Error, TimeOut };
 
         //TODO: уточнить сериализацию
         public class BaseQuery
         {
             public byte[] SessionId = Array.Empty<byte>();
+        }
+
+        public class Message : BaseQuery
+        {
+            public string senderLogin = String.Empty;
+            public DateTime sendingTime = DateTime.Now;
+            public string message = String.Empty;
+            public Dataset? dataset;
         }
 
         public class Command : BaseQuery
@@ -113,14 +121,6 @@ namespace Protocol
             {
                 public int Id = 0;
             }
-        }
-
-        public class Message : BaseQuery
-        {
-            public string senderLogin = String.Empty;
-            public DateTime sendingTime = DateTime.Now;
-            public string message = String.Empty;
-            public Dataset? dataset;
         }
 
         public class DirectMessage : Message

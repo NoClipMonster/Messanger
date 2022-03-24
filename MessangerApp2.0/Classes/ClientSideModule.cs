@@ -24,7 +24,7 @@ namespace MessangerApp2._0
         {
             try
             {
-                client.Connect(IP, PORT);
+                client=new(IP, PORT);
                 client.GetStream().Write(message);
                 byte[] size = new byte[protocol.bytesOfSizeAmount];
                 while (!client.GetStream().DataAvailable)
@@ -52,6 +52,7 @@ namespace MessangerApp2._0
                     Array.Copy(buff, 0, myReadBuffer, ammount, kol);
                     ammount += kol;
                 }
+                client.Close();
                 return protocol.Deserialize(myReadBuffer);
             }
             catch (Exception ex)
@@ -66,11 +67,13 @@ namespace MessangerApp2._0
         public void Login(string login, string pass)
         {
             var answer = SendPackage(protocol.SerializeToByte(new Data.Command{connection = new() { Login = login, Password = pass } }, MessageType.Command));
-            if(answer is Data.Answer.Session session)
+            if (answer is Data.Answer.Session session)
             {
                 sessionId = session.SessionId;
+                OnAnswerReceived(Data.StatusType.Ok);
             }
-            OnAnswerReceived(Array.Empty<byte>());
+            else OnAnswerReceived(Data.StatusType.AuthorizationDenied);
+            
         }
 
     }

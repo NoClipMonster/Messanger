@@ -45,14 +45,20 @@ namespace MessangerServer
         }
         public byte[] Answer(dynamic query)
         {
-            if (query is Data.DirectMessage || query is Data.GroupMessage)
-            {
-                dbClientData.AddMessage(query);
-                return protocol.SerializeToByte(Data.StatusType.Ok, Data.MessageType.Status);
-            }
+            
             if (query is Data.Command command)
             {
                 return CommandHandler(command);
+            }
+
+            if ((query is Data.DirectMessage || query is Data.GroupMessage))
+            {
+                if (dbClientData.CheckSession(query.SessionId))
+                {
+                    dbClientData.AddMessage(query);
+                    return protocol.SerializeToByte(Data.StatusType.Ok, Data.MessageType.Status);
+                }
+                else return protocol.SerializeToByte(Data.StatusType.InvalidSessionId, Data.MessageType.Status);
             }
             return protocol.SerializeToByte(Data.StatusType.Error, Data.MessageType.Status);
         }

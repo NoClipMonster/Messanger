@@ -68,7 +68,6 @@ namespace MessangerServer
 
         }
 
-
         #region Потоки
         public void WaitForCommand()
         {
@@ -166,7 +165,7 @@ namespace MessangerServer
             byte[] receivedBuffer = new byte[intSize];
             int ReceivedBytes = 0;
             DateTime lastReceiveTime = DateTime.Now;
-            while (ReceivedBytes < intSize && (DateTime.Now - lastReceiveTime).TotalMilliseconds < receiveTimeOut)
+            while (ReceivedBytes < intSize )
             {
                 byte[] buff = new byte[intSize - ReceivedBytes];
                 int kol = client.GetStream().Read(buff, 0, buff.Length);
@@ -174,6 +173,12 @@ namespace MessangerServer
                 ReceivedBytes += kol;
                 if (kol != 0)
                     lastReceiveTime = DateTime.Now;
+
+                if ((DateTime.Now - lastReceiveTime).TotalMilliseconds > receiveTimeOut)
+                {
+                    client.GetStream().Write(protocol.SerializeToByte(Data.StatusType.TimeOut, Data.MessageType.Status));
+                    return;
+                }
             }
 
             client.GetStream().Write(queryHandler.Answer(protocol.Deserialize(receivedBuffer)));
