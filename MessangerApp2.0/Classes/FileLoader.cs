@@ -13,6 +13,7 @@ namespace MessangerApp2._0.Classes
         string path;
         [JsonProperty("Data")]
         internal T Data;
+        public FileLoader() { }
         public FileLoader(string Path)
         {
             path = Path;
@@ -20,10 +21,9 @@ namespace MessangerApp2._0.Classes
             {
                 Load();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show(ex.Message);
-                Save();
+            
             }
         }
 

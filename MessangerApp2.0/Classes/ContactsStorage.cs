@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MessangerApp2._0.Classes
 {
@@ -8,9 +9,19 @@ namespace MessangerApp2._0.Classes
         string path = @"Contacts.json";
         public ContactsStorage()
         {
-            loader = new(path);
-            if (loader.Data == null)
+            try
+            {
+                loader = new(path);
+                if (loader.Data == null)
+                    loader.Data = new List<Contact>();
+            }
+            catch (Exception)
+            {
+
+                loader = new();
                 loader.Data = new List<Contact>();
+        
+            }
         }
         public class Contact
         {

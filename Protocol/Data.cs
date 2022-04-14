@@ -42,7 +42,6 @@ namespace Protocol
 
                 public bool IsGroup { get { return isgroup; } set { isgroup = bool.Parse(value.ToString()); } }
 
-                public string GroupId { get; set; } = "";
 
                 public DateTime Date { get; set; } = DateTime.Now;
 
@@ -208,12 +207,7 @@ namespace Protocol
         }
 
         public class DirectMessage : Message
-        {/*{"targetLogin":"Admin"
-          * ,"senderLogin":""
-          * ,"sendingTime":"2022-04-06T18:43:34.595458+03:00"
-          * ,"message":"TextBox"
-          * ,"dataset":null
-          * ,"SessionId":"rgKzJoUapVXxUSEQ1/sc5A=="}*/
+        {
             public string targetLogin;
             [JsonConstructor]
             public DirectMessage(string targetLogin, string senderLogin, DateTime sendingTime, string message, Dataset? dataset, byte[] sessionId)
@@ -258,6 +252,7 @@ namespace Protocol
                 this.message = message;
                 this.dataset = null;
             }
+            [JsonConstructor]
             public GroupMessage(byte[] sessionId, string groupId, string senderLogin, DateTime sendingTime, string message, Dataset? dataset)
             {
                 this.SessionId = sessionId;

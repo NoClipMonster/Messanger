@@ -46,7 +46,7 @@ namespace MessangerServer
             catch (Exception ex)
             {
                 WriteLine(ex.Message, MsgType.Error);
-                WriteLine("Значения будут установленны по умолчанию", MsgType.Warning);
+                WriteLine("Значения настроек будут установленны по умолчанию", MsgType.Warning);
                 sett.Save();
             }
 
@@ -67,15 +67,7 @@ namespace MessangerServer
         }
         int i = 0;
         DateTime dt;
-        private void WaitForNewData_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Cancelled)
-            {
-                return;
-            }
 
-            WaitForNewData.RunWorkerAsync();
-        }
 
         #region Потоки
         public void WaitForCommand()
@@ -139,7 +131,7 @@ namespace MessangerServer
                         break;
                     case "showclientcommands":
                     case "8":
-                        sett.ShowClientCommands =! sett.ShowClientCommands;
+                        sett.ShowClientCommands = !sett.ShowClientCommands;
                         break;
 
                 }
@@ -148,35 +140,46 @@ namespace MessangerServer
 
         void WaitForNewData_DoWork(object? sender, DoWorkEventArgs e)
         {
-
-            if (WaitForNewData.CancellationPending)
+            while (true)
             {
-                e.Cancel = true;
-                return;
-            }
-            if (server.Pending())
-            {
-                try
+                if (WaitForNewData.CancellationPending)
                 {
-                    BackgroundWorker worker = new();
-                    worker.DoWork += Receive_Data_DoWork;
-                    worker.RunWorkerAsync(server.AcceptTcpClient());
-
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    if (sett.ThrowAnException)
-                    {
-                        throw ex;
-                    }
-                    else MyConsole.WriteLine(ex.Message, MsgType.Error);
                     e.Cancel = true;
                     return;
                 }
-            }
-        }
+                if (server.Pending())
+                {
+                    try
+                    {
+                        BackgroundWorker worker = new();
+                        worker.DoWork += Receive_Data_DoWork;
+                        worker.RunWorkerAsync(server.AcceptTcpClient());
 
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (sett.ThrowAnException)
+                        {
+                            throw ex;
+                        }
+                        else MyConsole.WriteLine(ex.Message, MsgType.Error);
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
+
+        }
+        private void WaitForNewData_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                return;
+            }
+
+            WaitForNewData.RunWorkerAsync();
+        }
         void Receive_Data_DoWork(object? sender, DoWorkEventArgs e)
         {
 
@@ -219,6 +222,7 @@ namespace MessangerServer
             if (Query is not Data.Command.GetMessages && sett.ShowClientCommands)
                 WriteLine(Query.ToString().Substring(14), MsgType.Client);
             client.GetStream().Write(queryHandler.Answer(Query));
+            (sender as BackgroundWorker).Dispose();
         }
 
         #endregion

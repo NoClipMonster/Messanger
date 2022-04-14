@@ -51,10 +51,10 @@ namespace MessangerApp2._0
 
             foreach (var item in this.clientSideModule.messages.GetAll())
             {
-                ShowMessage(item,false);
+                ShowMessage(item, false);
             }
 
-            timer = new Timer(new TimerCallback(clientSideModule.CheckForMessage), null, 0, 100);
+            // timer = new Timer(new TimerCallback(clientSideModule.CheckForMessage), null, 0, 2000);
         }
 
         private void ClientSideModule_OnAnswerReceived(dynamic message)
@@ -245,49 +245,49 @@ namespace MessangerApp2._0
         }
         void ShowMessage(Answer.Message ms, bool IsNew = true)
         {
-            ShowMessage(ms.SenderID, ms.RecipientID, ms.Text, ms.Date, ms.IsGroup, ms.GroupId,IsNew);
+            ShowMessage(ms.SenderID, ms.RecipientID, ms.Text, ms.Date, ms.IsGroup, IsNew);
         }
-        void ShowMessage(string SenderId, string RecipientId, string text, DateTime dateTime, bool isGroup, string GroupId, bool IsNew = true)
+        void ShowMessage(string SenderId, string RecipientId, string text, DateTime dateTime, bool isGroup, bool IsNew = true)
         {
             if (isGroup)
             {
-                if (!contacts.ContainsKey(GroupId))
+                if (!contacts.ContainsKey(RecipientId))
                 {
-                    dynamic answer = clientSideModule.FindGroup(GroupId);
+                    dynamic answer = clientSideModule.FindGroup(RecipientId);
                     if (answer is Answer.Group group)
                         AddGroup(group);
 
                 }
-                if (GroupId != SelectedChat)
-                    contacts[GroupId].newMessageIndicator.Visibility = Visibility.Visible;
+                if (RecipientId != SelectedChat)
+                    contacts[RecipientId].newMessageIndicator.Visibility = Visibility.Visible;
 
                 MessageControl message = new(text, dateTime, SenderId, SenderId == clientSideModule.UserId);
-                double height = (chatGrids[GroupId].Children.Count != 0) ? (chatGrids[GroupId].Children[^1] as MessageControl).Margin.Top + (chatGrids[GroupId].Children[^1] as MessageControl).ActualHeight : 0;
+                double height = (chatGrids[RecipientId].Children.Count != 0) ? (chatGrids[RecipientId].Children[^1] as MessageControl).Margin.Top + (chatGrids[RecipientId].Children[^1] as MessageControl).ActualHeight : 0;
                 Thickness thickness = message.Margin;
                 thickness.Top = 20 + height;
                 message.Margin = thickness;
 
-                int index = chatGrids[GroupId].Children.Add(message);
+                int index = chatGrids[RecipientId].Children.Add(message);
                 for (int i = index - 1; i >= 0; i--)
                 {
-                    if ((chatGrids[GroupId].Children[i] as MessageControl).data.DateTime > (chatGrids[GroupId].Children[index] as MessageControl).data.DateTime)
+                    if ((chatGrids[RecipientId].Children[i] as MessageControl).data.DateTime > (chatGrids[RecipientId].Children[index] as MessageControl).data.DateTime)
                     {
-                        MessageControl newMS = new(chatGrids[GroupId].Children[index] as MessageControl);
-                        MessageControl MS = new(chatGrids[GroupId].Children[i] as MessageControl);
-                        chatGrids[GroupId].Children.RemoveAt(i);
-                        chatGrids[GroupId].Children.Insert(i, newMS);
-                        chatGrids[GroupId].Children.RemoveAt(index);
-                        chatGrids[GroupId].Children.Insert(index, MS);
+                        MessageControl newMS = new(chatGrids[RecipientId].Children[index] as MessageControl);
+                        MessageControl MS = new(chatGrids[RecipientId].Children[i] as MessageControl);
+                        chatGrids[RecipientId].Children.RemoveAt(i);
+                        chatGrids[RecipientId].Children.Insert(i, newMS);
+                        chatGrids[RecipientId].Children.RemoveAt(index);
+                        chatGrids[RecipientId].Children.Insert(index, MS);
                         index = i;
                     }
                 }
-                Visibility = contacts[GroupId].newMessageIndicator.Visibility;
-                contacts[GroupId].ChangeMessage(text, dateTime);
+                Visibility = contacts[RecipientId].newMessageIndicator.Visibility;
+                contacts[RecipientId].ChangeMessage(text, dateTime);
                 if (!IsNew)
-                    contacts[GroupId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
+                    contacts[RecipientId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
                 else
-                    clientSideModule.contacts.SetNewMessage(GroupId);
-                PlaceUserOnTop(contacts[RecipientId].user.Id);
+                    clientSideModule.contacts.SetNewMessage(RecipientId);
+                PlaceUserOnTop(contacts[RecipientId].group.Id);
 
             }
             else
@@ -333,10 +333,10 @@ namespace MessangerApp2._0
                     Visibility = contacts[RecipientId].newMessageIndicator.Visibility;
                     contacts[RecipientId].ChangeMessage(text, dateTime);
                     if (!IsNew)
-                        contacts[RecipientId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId)?Visibility.Visible:Visibility.Hidden;
+                        contacts[RecipientId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
                     else
                         clientSideModule.contacts.SetNewMessage(RecipientId, true);
-                    
+
                     PlaceUserOnTop(RecipientId);
                 }
                 else

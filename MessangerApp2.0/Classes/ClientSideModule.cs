@@ -32,7 +32,7 @@ namespace MessangerApp2._0
             contacts = new();
         }
 
-        dynamic SendPackage(byte[] message)
+       public  dynamic SendPackage(byte[] message)
         {
             try
             {
@@ -73,6 +73,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                     throw ex;
                 MessageBox.Show(ex.Message, "Не удалось отправить пакет данных");
                 if (client.Connected)
                     client.Close();
@@ -83,7 +85,7 @@ namespace MessangerApp2._0
         public void CheckSession()
         {
 
-            if (settings.SessionId.Length == 16)
+            if (settings.SessionId!=null && settings.SessionId.Length == 16)
             {
                 dynamic answer = SendPackage(protocol.SerializeToByte(new Answer.Session() { SessionId = settings.SessionId }, Data.MessageType.SessionId));
                 if (answer is Answer.User user)
@@ -102,12 +104,13 @@ namespace MessangerApp2._0
         {
             try
             {
+                
                 if (Application.Current != null)
                     Application.Current.Dispatcher.Invoke((Action)delegate
                     {
                         DateTime dt = DateTime.Now;
                         dynamic answer = SendPackage(protocol.SerializeToByte(new Command.GetMessages(SessionId, settings.ClientInfo.Id, settings.LastMessageCheck, dt), MessageType.Command));
-                        if (answer is Answer.Message[] messages)
+                        if (answer is Answer.Message[] messages && messages.Length > 0)
                         {
                             settings.LastMessageCheck = dt;
                             OnMessagesReceived(messages);
@@ -116,6 +119,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw;
             }
 
         }
@@ -141,6 +146,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw ex;
                 MessageBox.Show(ex.Message);
                 OnAnswerReceived(Data.StatusType.Error);
             }
@@ -158,6 +165,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw ex;
                 MessageBox.Show(ex.Message);
                 OnAnswerReceived(Data.StatusType.Error);
             }
@@ -177,6 +186,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw ex;
                 MessageBox.Show(ex.Message);
                 OnAnswerReceived(Data.StatusType.Error);
             }
@@ -187,8 +198,8 @@ namespace MessangerApp2._0
             try
             {
                 if (isGroup)
-                {/////////////////////////////////
-                    SendPackage(protocol.SerializeToByte(new GroupMessage(SessionId, login, UserId, text), MessageType.DirectMessage));
+                {
+                    SendPackage(protocol.SerializeToByte(new GroupMessage(SessionId, login, UserId, text), MessageType.GroupMessage));
                 }
                 else
                 SendPackage(protocol.SerializeToByte(new DirectMessage(SessionId, login, UserId, text), MessageType.DirectMessage));
@@ -196,6 +207,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw ex;
                 MessageBox.Show(ex.Message);
                 OnAnswerReceived(Data.StatusType.Error);
             }
@@ -209,11 +222,6 @@ namespace MessangerApp2._0
         public dynamic FindGroup(string UserId)
         {
             return SendPackage(protocol.SerializeToByte(new Command.FindGroup(SessionId, UserId), MessageType.Command));
-        }
-
-        public void SendMessage(GroupMessage groupMessage)
-        {
-
         }
 
         public void CreateGroup(string GroupId, string GroupName, string Description)
@@ -230,6 +238,8 @@ namespace MessangerApp2._0
             }
             catch (Exception ex)
             {
+                if (settings.ThrowExceptions)
+                    throw ex;
                 MessageBox.Show(ex.Message);
                 OnAnswerReceived(Data.StatusType.Error);
             }

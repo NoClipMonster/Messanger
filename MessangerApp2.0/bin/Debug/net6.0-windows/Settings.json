@@ -6,8 +6,9 @@
   },
   "IP": "192.168.1.101",
   "PORT": 8080,
-  "LastMessageCheck": "2022-04-13T22:13:05.2023845+03:00",
-  "SessionId": "jKIWV/i/YAQAYT7Pyc2t0Q==",
+  "ThrowExceptions": false,
+  "LastMessageCheck": "2022-04-14T20:45:22.3834297+03:00",
+  "SessionId": "lG+VD521GGmaiqY4RSAVlQ==",
   "MainColor": "#FF202020",
   "AdditionalColor": "#FF2D2D2D"
 }

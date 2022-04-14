@@ -11,16 +11,29 @@ namespace MessangerApp2._0
         string path = @"Settings.json";
         public Settings()
         {
+            
+            try
+            {
             loader = new(path);
+                if (loader.Data == null)
+                    loader.Data = new Data();
+            }
+            catch(Exception)
+            {
+                loader = new();
+                loader.Data = new Data();
+            }
         }
-
-        protected struct Data
+        [JsonObject]
+        protected class Data
         {
             public Protocol.Data.Answer.User ClientInfo = new();
 
             public string IP = "192.168.1.101";
 
             public int PORT = 8080;
+
+            public bool ThrowExceptions = false;
 
             public DateTime LastMessageCheck = DateTime.MinValue;
 
@@ -29,12 +42,15 @@ namespace MessangerApp2._0
             public Brush MainColor = new SolidColorBrush(new Color() { R = 32, G = 32, B = 32, A = 255 });
 
             public Brush AdditionalColor = new SolidColorBrush(new Color() { R = 45, G = 45, B = 45, A = 255 });
-
-            public Data(Protocol.Data.Answer.User clientInfo, string iP, int pORT, DateTime lastMessageCheck, byte[] sessionId, Brush mainColor, Brush additionalColor)
+            public Data()
+            {
+            }
+            public Data(Protocol.Data.Answer.User clientInfo, string iP, int pORT,bool throwExceptions, DateTime lastMessageCheck, byte[] sessionId, Brush mainColor, Brush additionalColor)
             {
                 ClientInfo = clientInfo;
                 IP = iP;
                 PORT = pORT;
+                ThrowExceptions = throwExceptions;
                 LastMessageCheck = lastMessageCheck;
                 SessionId = sessionId;
                 MainColor = mainColor;
@@ -63,6 +79,11 @@ namespace MessangerApp2._0
         {
             get { return loader.Data.PORT; }
             set { loader.Data.PORT = value; loader.Save(); }
+        }
+        public bool ThrowExceptions
+        {
+            get { return loader.Data.ThrowExceptions; }
+            set { loader.Data.ThrowExceptions = value; loader.Save(); }
         }
         public DateTime LastMessageCheck
         {

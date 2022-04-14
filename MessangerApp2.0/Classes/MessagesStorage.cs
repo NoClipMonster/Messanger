@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-using Protocol;
+﻿using Protocol;
 using System;
 using System.Collections.Generic;
-using System.Windows;
 
 namespace MessangerApp2._0.Classes
 {
@@ -12,11 +10,19 @@ namespace MessangerApp2._0.Classes
         string path = @"Messages.json";
         public MessagesStorage()
         {
-            loader = new(path);
-            if(loader.Data==null)
+            try
+            {
+                loader = new(path);
+                if (loader.Data == null)
+                    loader.Data = new List<Data.Answer.Message>();
+            }
+            catch (Exception)
+            {
+                loader = new();
                 loader.Data = new List<Data.Answer.Message>();
+            }
         }
-       
+
         public void Add(Data.Answer.Message[] messages)
         {
             this.loader.Data.AddRange(messages);
@@ -29,7 +35,7 @@ namespace MessangerApp2._0.Classes
         }
         public Data.Answer.Message[] GetAll()
         {
-            return loader.Data.ToArray()??Array.Empty<Data.Answer.Message>();
+            return loader.Data.ToArray() ?? Array.Empty<Data.Answer.Message>();
         }
         public void DeleteAll()
         {

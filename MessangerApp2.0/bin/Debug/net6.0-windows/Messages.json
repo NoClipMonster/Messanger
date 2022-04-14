@@ -3,44 +3,7 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-06T23:58:35.857",
-    "Text": "Привет",
-    "FileId": null
-  },
-  {
-    "SenderID": "Admin",
-    "RecipientID": "Login",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-06T23:58:50.277",
-    "Text": "И тебе привет",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Login",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:36:15.49",
-    "Text": "Сам себе",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Login",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:37:02.93",
-    "Text": "Сам себе",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:47:50.627",
+    "Date": "2022-04-14T20:32:42.317",
     "Text": "TextBox",
     "FileId": null
   },
@@ -48,8 +11,7 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:47:52.587",
+    "Date": "2022-04-14T20:33:26.447",
     "Text": "TextBox",
     "FileId": null
   },
@@ -57,17 +19,7 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:48:36.683",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Login",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T21:57:46.723",
+    "Date": "2022-04-14T20:33:45.663",
     "Text": "TextBox",
     "FileId": null
   },
@@ -75,8 +27,7 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T22:07:51.783",
+    "Date": "2022-04-14T20:35:12.517",
     "Text": "TextBox",
     "FileId": null
   },
@@ -84,17 +35,7 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T22:07:54.317",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Admin",
-    "RecipientID": "Login",
-    "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-11T22:08:39.807",
+    "Date": "2022-04-14T20:35:27.457",
     "Text": "TextBox",
     "FileId": null
   },
@@ -102,26 +43,71 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-13T22:10:03.273",
+    "Date": "2022-04-14T20:35:43.82",
     "Text": "TextBox",
     "FileId": null
   },
   {
     "SenderID": "Login",
-    "RecipientID": "Group1",
+    "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-13T22:11:08.577",
+    "Date": "2022-04-14T20:39:28.267",
     "Text": "TextBox",
     "FileId": null
   },
   {
     "SenderID": "Login",
-    "RecipientID": "Group1",
+    "RecipientID": "Admin",
     "IsGroup": false,
-    "GroupId": "",
-    "Date": "2022-04-13T22:13:01.543",
+    "Date": "2022-04-14T20:39:51.813",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:39:54.897",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:39:55.043",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:39:55.203",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:39:55.35",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:43:49.267",
+    "Text": "TextBox",
+    "FileId": null
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Admin",
+    "IsGroup": false,
+    "Date": "2022-04-14T20:45:20.87",
     "Text": "TextBox",
     "FileId": null
   }
