@@ -1,6 +1,6 @@
 ﻿namespace MessangerServer
 {
-    internal class MyConsole
+    internal static class MyConsole
     {
         public static void WriteLine(string message, MsgType type = MsgType.Information)
         {
@@ -30,6 +30,7 @@
             Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
         }
+
         public enum MsgType
         {
             Warning,

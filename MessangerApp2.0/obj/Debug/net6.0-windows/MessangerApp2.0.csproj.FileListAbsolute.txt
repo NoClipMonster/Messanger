@@ -38,3 +38,5 @@ C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Contro
 C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Controls\MessageControl.baml
 C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Windows\MainWindow.baml
 C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Windows\RegistrationWindow.baml
+C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Controls\CreateGroup.g.cs
+C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\obj\Debug\net6.0-windows\Controls\CreateGroup.baml

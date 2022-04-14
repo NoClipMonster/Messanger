@@ -10,6 +10,9 @@
     <Compile Update="Controls\ContactUC.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Controls\CreateGroup.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Controls\MessageControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -25,6 +28,9 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\ContactUC.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\CreateGroup.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Controls\MessageControl.xaml">

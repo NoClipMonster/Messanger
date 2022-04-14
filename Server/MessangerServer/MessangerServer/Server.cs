@@ -1,10 +1,8 @@
 ﻿using Protocol;
 using System.ComponentModel;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using static MessangerServer.MyConsole;
-using static Protocol.Data.Command;
 
 //TODO: Sessions
 
@@ -35,13 +33,12 @@ namespace MessangerServer
 
         bool сollectionIsСhanging = false;
         bool сollectionIsReading = false;
-      
 
         int receiveTimeOut = 5000;//МС
 
 
         public MyServer()
-        {  
+        {
             try
             {
                 sett.Load();
@@ -56,22 +53,34 @@ namespace MessangerServer
 
             queryHandler = new();
             WriteLine("База 'Логин/пароль' загруженна");
-            
+
             IPAddress localAddr = IPAddress.Parse(sett.Ip);
             server = new(localAddr, sett.Port);
             WaitForNewData = new();
-           
+
             WaitForNewData.WorkerSupportsCancellation = true;
-
+            WaitForNewData.WorkerReportsProgress = true;
             WaitForNewData.DoWork += WaitForNewData_DoWork;
-           
+            WaitForNewData.RunWorkerCompleted += WaitForNewData_RunWorkerCompleted;
+            dt = DateTime.Now;
 
+        }
+        int i = 0;
+        DateTime dt;
+        private void WaitForNewData_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                return;
+            }
+
+            WaitForNewData.RunWorkerAsync();
         }
 
         #region Потоки
         public void WaitForCommand()
         {
-            string[] commands = { "Start", "Stop", "Restart", "Close", "Clients", "Throw exceptions", "Show settings" };
+            string[] commands = { "Start", "Stop", "Restart", "Close", "Clients", "Throw exceptions", "Show settings", "Show Client Commands" };
             WriteLine("Ожидание комманды");
             while (true)
             {
@@ -114,9 +123,9 @@ namespace MessangerServer
                         break;
                     case "clients":
                     case "5":
-                      //TODO: Добавить вывод списка клиентов
-                            WriteLine("Тут пусто, нужно добавить функционал", MsgType.Error);
-                     
+                        //TODO: Добавить вывод списка клиентов
+                        WriteLine("Тут пусто, нужно добавить функционал", MsgType.Error);
+
                         break;
 
                     case "throw exceptions":
@@ -128,6 +137,10 @@ namespace MessangerServer
                     case "7":
                         sett.Show();
                         break;
+                    case "showclientcommands":
+                    case "8":
+                        sett.ShowClientCommands =! sett.ShowClientCommands;
+                        break;
 
                 }
             }
@@ -135,26 +148,47 @@ namespace MessangerServer
 
         void WaitForNewData_DoWork(object? sender, DoWorkEventArgs e)
         {
-            BackgroundWorker worker = new();
-            worker.DoWork += Receive_Data_DoWork;
-            worker.RunWorkerAsync(server.AcceptTcpClient());
+
+            if (WaitForNewData.CancellationPending)
+            {
+                e.Cancel = true;
+                return;
+            }
+            if (server.Pending())
+            {
+                try
+                {
+                    BackgroundWorker worker = new();
+                    worker.DoWork += Receive_Data_DoWork;
+                    worker.RunWorkerAsync(server.AcceptTcpClient());
+
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    if (sett.ThrowAnException)
+                    {
+                        throw ex;
+                    }
+                    else MyConsole.WriteLine(ex.Message, MsgType.Error);
+                    e.Cancel = true;
+                    return;
+                }
+            }
         }
 
         void Receive_Data_DoWork(object? sender, DoWorkEventArgs e)
         {
-            //TODO: Cancle
-            //TODO: Добавить таймаут сессии
 
 
             if (e.Argument is not TcpClient client)
                 return;
 
-            WriteLine("Запрос от: " + client.Client.RemoteEndPoint, MsgType.Client);
+            //  WriteLine("Запрос от: " + client.Client.RemoteEndPoint, MsgType.Client);
 
             byte[] size = new byte[protocol.bytesOfSizeAmount];
 
             client.GetStream().Read(size, 0, size.Length);
-
             int intSize = 0;
 
             for (int i = size.Length - 1; i >= 0; i--)
@@ -165,7 +199,7 @@ namespace MessangerServer
             byte[] receivedBuffer = new byte[intSize];
             int ReceivedBytes = 0;
             DateTime lastReceiveTime = DateTime.Now;
-            while (ReceivedBytes < intSize )
+            while (ReceivedBytes < intSize)
             {
                 byte[] buff = new byte[intSize - ReceivedBytes];
                 int kol = client.GetStream().Read(buff, 0, buff.Length);
@@ -180,8 +214,11 @@ namespace MessangerServer
                     return;
                 }
             }
+            dynamic Query = protocol.Deserialize(receivedBuffer);
 
-            client.GetStream().Write(queryHandler.Answer(protocol.Deserialize(receivedBuffer)));
+            if (Query is not Data.Command.GetMessages && sett.ShowClientCommands)
+                WriteLine(Query.ToString().Substring(14), MsgType.Client);
+            client.GetStream().Write(queryHandler.Answer(Query));
         }
 
         #endregion
@@ -196,13 +233,14 @@ namespace MessangerServer
             }
             WaitForNewData.CancelAsync();
 
-            server.Stop();
-
             while (WaitForNewData.IsBusy)
             {
                 Console.Write(".");
                 Thread.Sleep(500);
+                WaitForNewData.CancelAsync();
             }
+
+            server.Stop();
             Console.WriteLine();
             WriteLine("Сервер остановлен");
         }
@@ -216,7 +254,7 @@ namespace MessangerServer
             }
             server.Start();
             WaitForNewData.RunWorkerAsync();
-          
+
             WriteLine("Сервер запущен");
 
         }

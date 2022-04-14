@@ -5,44 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessangerApp2._0"
         mc:Ignorable="d"
-        Title="Textator" Height="700" Width="1000" Background="#FF18191D" WindowStartupLocation="CenterScreen">
-    <Grid x:Name="MainGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="50"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions >
-            <ColumnDefinition Width="325" x:Name="FirstColumnDef"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
+        Title="Textator" Height="700" Width="900" WindowStartupLocation="CenterScreen" MinWidth="900" MinHeight="703">
+    <Grid x:Name="HeadGrid" >
 
-        <Grid Background="#FF23252B" Grid.Column="1" Height="50" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2">
-            <TextBox x:Name="textInputBox" TextWrapping="Wrap" Text="TextBox" Margin="50,0,50,0" Foreground="White" FontSize="16" AcceptsReturn="True" AcceptsTab="True">
-                <TextBox.BorderBrush>
-                    <SolidColorBrush Color="#FFABADB3" Opacity="0"/>
-                </TextBox.BorderBrush>
-                <TextBox.Background>
-                    <SolidColorBrush Color="White" Opacity="0"/>
-                </TextBox.Background>
-            </TextBox>
-            <Button Content="Button" HorizontalAlignment="Left" Width="50" Height="50" VerticalAlignment="Center"/>
-            <Button Content="Button" HorizontalAlignment="Right" Width="50" Height="50" VerticalAlignment="Center" Click="SendButtonClick"/>
-        </Grid>
+        <Grid x:Name="MainGrid" Background="#FF202020">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions >
+                <ColumnDefinition Width="330" x:Name="FirstColumnDef"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
 
-        <ScrollViewer  x:Name="MessageScroller" Grid.Column="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Hidden"/>
+            <Grid x:Name="TextEnterField" Background="#FF28282D" Grid.Column="1" Height="50" VerticalAlignment="Center" Grid.Row="1">
+                <TextBox x:Name="textInputBox" TextWrapping="Wrap" Text="TextBox" Margin="50,0,50,0" Foreground="White" FontSize="16" AcceptsReturn="True" AcceptsTab="True">
+                    <TextBox.BorderBrush>
+                        <SolidColorBrush Color="#FFABADB3" Opacity="0"/>
+                    </TextBox.BorderBrush>
+                    <TextBox.Background>
+                        <SolidColorBrush Color="White" Opacity="0"/>
+                    </TextBox.Background>
+                </TextBox>
+                <Button Content="Button" HorizontalAlignment="Left" Width="50" Height="50" VerticalAlignment="Center"/>
+                <Button Content="Button" HorizontalAlignment="Right" Width="50" Height="50" VerticalAlignment="Center" Click="SendButtonClick"/>
+            </Grid>
 
-        <Expander ExpandDirection="Right"  Grid.RowSpan="2" Expanded="Expander_Expanded" Collapsed="Expander_Collapsed" IsExpanded="True" Background="#FF1A1C21">
-            <ScrollViewer VerticalScrollBarVisibility="Hidden">
+            <ScrollViewer  x:Name="MessageScroller" Grid.Column="1" VerticalScrollBarVisibility="Hidden"/>
+            <Button x:Name="UsersButton" Height="30"  Width="30" VerticalAlignment="Top" HorizontalAlignment="Left" Click="UsersButton_Click" Margin="0,35,0,0" Content="ᐊ" />
+            <ScrollViewer x:Name="UsersField" VerticalScrollBarVisibility="Hidden"  Grid.RowSpan="2" Background="#FF2D2D2D" Grid.Column="0" Margin="30,0,0,0" HorizontalAlignment="Left" Width="300">
                 <ScrollViewer.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Добавить пользователя" Click="MenuItem_Click" />
+                        <MenuItem Header="Найти пользователя/группу" Click="FindSomeOne_Click" />
+                        <MenuItem Header="Создать группу" Click="CreateGroup_Click" />
                     </ContextMenu>
                 </ScrollViewer.ContextMenu>
                 <Grid x:Name="ContactsGrid"/>
 
             </ScrollViewer>
-        </Expander>
+            <Button x:Name="MenuButton" Height="30"  Width="30" VerticalAlignment="Top" HorizontalAlignment="Left" Content="M" Click="MenuButton_Click"/>
 
+        </Grid>
+        <Grid x:Name="MenuGrid" HorizontalAlignment="Left" Width="330" Margin="-330,0,0,0" Grid.RowSpan="2" Background="#FF28282D">
+            <Button x:Name="ExitButton"  Content="Выход" Margin="65,0,65,10" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" FontSize="36" Height="66" VerticalAlignment="Bottom" Click="ExitButton_Click"/>
+            <Button x:Name="CheFMesButton"  Content="Проверить новые сообщения" Margin="10,10,10,0" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" Height="66" VerticalAlignment="Top" Click="CheFMesButton_Click" FontSize="20"/>
+            <Button x:Name="ClearAllMsgButton"  Content="Очистить историю" Margin="10,81,10,0" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" Height="66" VerticalAlignment="Top" Click="ClearAllMsgButton_Click" FontSize="20"/>
+        </Grid>
     </Grid>
-
 </Window>

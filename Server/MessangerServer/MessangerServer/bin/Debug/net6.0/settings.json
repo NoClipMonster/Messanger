@@ -1,1 +1,1 @@
-{"Ip":"192.168.1.101","Port":8080,"ThrowAnException":false,"Path":"settings.json"}
+{"ShowClientCommands":true,"Ip":"192.168.1.101","Port":8080,"ThrowAnException":false,"Path":"settings.json"}

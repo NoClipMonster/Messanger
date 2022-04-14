@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Protocol", "Protocol\Protocol.csproj", "{688D6D1D-892A-40B6-A70B-751859F52D07}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessangerServer", "Server\MessangerServer\MessangerServer\MessangerServer.csproj", "{5BC5E7F4-4B5F-46EB-86AD-255EB1EFB1D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{688D6D1D-892A-40B6-A70B-751859F52D07} = {688D6D1D-892A-40B6-A70B-751859F52D07}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

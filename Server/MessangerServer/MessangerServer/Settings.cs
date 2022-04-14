@@ -5,65 +5,77 @@ namespace MessangerServer
 {
     internal class Settings
     {
-        string ip = "192.168.1.101";
-        int port = 8080;
-        bool throwAnException = false;
-        string path = @"settings.json";
+        internal class Data
+        {
+           public string ip = "192.168.1.101";
+            public int port = 8080;
+            public bool throwAnException = false;
+            public bool showClientCommands = false;
+            public string path = @"settings.json";
+        }
+        Data data = new();
+        public bool ShowClientCommands
+        {
+            get { return data.showClientCommands; }
+            set
+            {
+                data.showClientCommands = value;
+                WriteLine("Значение параметра ShowClientCommands установленно на " + value, MsgType.Settings);
+                Save();
+            }
+        }
 
         public string Ip
         {
-            get { return ip; }
+            get { return data.ip; }
             set
             {
-                ip = value;
+                data.ip = value;
                 WriteLine("Значение параметра Ip установленно на " + value, MsgType.Settings);
                 Save();
             }
         }
         public int Port
         {
-            get { return port; }
+            get { return data.port; }
             set
             {
-                port = value;
+                data.port = value;
                 WriteLine("Значение параметра Port установленно на " + value, MsgType.Settings);
                 Save();
             }
         }
         public bool ThrowAnException
         {
-            get { return throwAnException; }
+            get { return data.throwAnException; }
             set
             {
-                throwAnException = value;
+                data.throwAnException = value;
                 WriteLine("Значение параметра ThrowAnException установленно на " + value, MsgType.Settings);
                 Save();
             }
         }
         public string Path
         {
-            get { return path; }
+            get { return data.path; }
             set
             {
-                path = value;
+                data.path = value;
                 WriteLine("Значение параметра Path установленно на " + value, MsgType.Settings);
                 Save();
             }
         }
 
-        public void Save() =>System.IO.File.WriteAllText(Path, JsonConvert.SerializeObject(this));
+        public void Save() =>System.IO.File.WriteAllText(Path, JsonConvert.SerializeObject(data));
 
         public void Load()
         {
             if (System.IO.File.Exists(Path))
             {
-                object? obj = JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText(Path));
-                if (obj is Settings sett)
+                object? obj = JsonConvert.DeserializeObject<Data>(System.IO.File.ReadAllText(Path));
+                if (obj is Data sett)
                 {
-                    ip = sett.ip;
-                    port = sett.port;
-                    throwAnException = sett.throwAnException;
-                    path = sett.path;
+                    data = sett;
                     WriteLine("Настройки загруженны", MsgType.Settings);
                 }
                 else
@@ -75,10 +87,11 @@ namespace MessangerServer
 
         public void Show()
         {
-            string str = "\nIp: " + ip +
-                "\nPort: " + port +
-                "\nThrowAnException: " + throwAnException +
-                "\nPath: " + path;
+            string str = "\nIp: " + data.ip +
+                "\nPort: " + data.port +
+                "\nThrowAnException: " + data.throwAnException +
+                "\nPath: " + data.path +
+                "\nShowClientCommands: " + data.showClientCommands;
 
             WriteLine(str, MsgType.Settings);
         }

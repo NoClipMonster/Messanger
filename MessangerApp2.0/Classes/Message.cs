@@ -2,8 +2,6 @@
 
 namespace MessangerApp2._0
 {
-
-
     public partial class MainWindow
     {
         class Message

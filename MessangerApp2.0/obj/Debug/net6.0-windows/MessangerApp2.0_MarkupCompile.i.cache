@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
 C:\Users\iaved\Desktop\Messanger\MessangerApp2.0\App.xaml
-51528270871
+6-1108299009
 
-122051327602
-198-106535334
-Controls\ContactUC.xaml;Controls\FindUser.xaml;Controls\MessageControl.xaml;Windows\MainWindow.xaml;Windows\RegistrationWindow.xaml;
+16-1692650447
+198-365811843
+Controls\ContactUC.xaml;Controls\CreateGroup.xaml;Controls\FindUser.xaml;Controls\MessageControl.xaml;Windows\MainWindow.xaml;Windows\RegistrationWindow.xaml;
 
-True
+False
 

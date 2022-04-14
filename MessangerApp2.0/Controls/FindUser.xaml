@@ -4,15 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MessangerApp2._0"
-             mc:Ignorable="d" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  Panel.ZIndex="5" Height="760" Width="535">
-    <Grid >
+             mc:Ignorable="d" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"  Panel.ZIndex="5" Height="760" Width="535" KeyDown="UserControl_KeyDown">
+    <Grid Background="#00000000" MouseDown="Grid_MouseDown" >
 
-        <Border CornerRadius="10" BorderThickness="1" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Height="600" Background="#FF1E1E1E" Panel.ZIndex="2">
+        <Border x:Name="MainBorder" CornerRadius="10" BorderThickness="1" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Height="600" Background="#FF1E1E1E" Panel.ZIndex="2">
             <Grid>
 
-                <TextBlock TextWrapping="Wrap" Text="Это лиш заглушка. Нормальный поиск будет позже" Foreground="Red"/>
-                <Button x:Name="mainButton" Content="Button" HorizontalAlignment="Left" Margin="159,329,0,0" VerticalAlignment="Top"/>
+                <TextBlock TextWrapping="Wrap" Foreground="Red"><Run Text="Это"/><Run Language="ru-ru" Text=" только "/><Run Text="заглушка."/></TextBlock>
+                <Button x:Name="mainButton" Content="Button" HorizontalAlignment="Left" Margin="159,353,0,0" VerticalAlignment="Top"/>
                 <TextBox x:Name="userNameBox" HorizontalAlignment="Left" Margin="119,281,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                <CheckBox x:Name="IsGroup" Content="IsGroup" HorizontalAlignment="Left" Margin="148,316,0,0" VerticalAlignment="Top" Foreground="White"/>
 
             </Grid>
         </Border>

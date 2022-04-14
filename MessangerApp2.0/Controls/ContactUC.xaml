@@ -23,6 +23,7 @@
                     </RadialGradientBrush>
                 </Ellipse.Fill>
             </Ellipse>
+            <Label x:Name="position" Content="Position" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="212,38,0,0" VerticalAlignment="Top" Width="63" Foreground="#FF545454"/>
         </Grid>
     </Border>
 

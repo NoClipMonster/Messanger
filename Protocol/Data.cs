@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Newtonsoft.Json;
+using System.ComponentModel;
 
 namespace Protocol
 {
@@ -9,6 +10,7 @@ namespace Protocol
         {
             public class Session
             {
+                public User? User;
                 public byte[] SessionId = Array.Empty<byte>();
             }
 
@@ -40,6 +42,8 @@ namespace Protocol
 
                 public bool IsGroup { get { return isgroup; } set { isgroup = bool.Parse(value.ToString()); } }
 
+                public string GroupId { get; set; } = "";
+
                 public DateTime Date { get; set; } = DateTime.Now;
 
                 public string Text { get; set; } = "";
@@ -52,8 +56,6 @@ namespace Protocol
             {
                 public string Id { get; set; } = "";
 
-                public string Password { get; set; } = "";
-
                 public string Name { get; set; } = "";
 
                 public string Description { get; set; } = "";
@@ -65,11 +67,11 @@ namespace Protocol
 
                 public string GroupId { get; set; } = String.Empty;
 
-                public string Level { get; set; } = String.Empty;
+                public int Level { get; set; } = 5;
             }
         }
-        public enum MessageType { Direct, Group, Command, Status, Answer };
-        public enum StatusType { Ok, AuthorizationDenied, InvalidSessionId, Error, TimeOut };
+        public enum MessageType { DirectMessage, GroupMessage, Command, Status, SessionId, Users, User, Messages, File, Group, Groups };
+        public enum StatusType { Ok, AuthorizationDenied, UserExists, InvalidSessionId, Error, TimeOut, Authorized,GroupExists,GroupCreated };
 
         //TODO: уточнить сериализацию
         public class BaseQuery
@@ -85,52 +87,186 @@ namespace Protocol
             public Dataset? dataset;
         }
 
-        public class Command : BaseQuery
+        public class Command
         {
-            public enum CommandType { Connection, Disconnection, Registration, FindUsers, GetMessages, GetFile }
-            public CommandType type;
-            public Connection? connection;
-            public Registration? registration;
-            public FindUser? findUser;
-            public GetMessages? getMessages;
-            public GetFile? getFile;
+            public enum CommandType { Connection, Disconnection, Registration,FindUser, FindUsers, GetMessages, GetFile, CheckSession, CreateGroup,FindGroup }
+            public class BaseCommand : BaseQuery
+            {
+                public CommandType commandType;
+            }
+            public class Connection : BaseCommand
+            {
+                public string Login;
+                public string Password;
 
-            public class Connection
-            {
-                public string Login = String.Empty;
-                public string Password = String.Empty;
+                public Connection(string login, string password)
+                {
+                    commandType = CommandType.Connection;
+                    Login = login;
+                    Password = password;
+                }
+
             }
-            public class Registration
+            public class Disconnection : BaseCommand
             {
-                public string Login = String.Empty;
-                public string Password = String.Empty;
-                public string Name = String.Empty;
-                public string Description = String.Empty;
+                public Disconnection(byte[] sessionId)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.Disconnection;
+                }
             }
-            public class FindUser
+            public class Registration : BaseCommand
             {
-                public string Id = String.Empty;
+                public string Login;
+                public string Password;
+                public string Name;
+                public string Description;
+
+                public Registration(string login, string password, string name, string description)
+                {
+                    commandType = CommandType.Registration;
+                    Login = login;
+                    Password = password;
+                    Name = name;
+                    Description = description;
+                }
+
             }
-            public class GetMessages
+            public class FindUser : BaseCommand
             {
-                public string Id = String.Empty;
-                public DateTime Start = DateTime.MinValue;
-                public DateTime End = DateTime.MaxValue;
+
+                public string Id;
+
+                public FindUser(byte[] sessionId, string id)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.FindUser;
+                    Id = id;
+                }
+
             }
-            public class GetFile
+            public class GetMessages : BaseCommand
             {
-                public int Id = 0;
+                public string Id;
+                public DateTime Start;
+                public DateTime End;
+
+                public GetMessages(byte[] sessionId, string id, DateTime start, DateTime end)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.GetMessages;
+                    Id = id;
+                    Start = start;
+                    End = end;
+                }
+
             }
+            public class GetFile : BaseCommand
+            {
+                public int Id;
+
+                public GetFile(byte[] sessionId, int id)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.GetFile;
+                    Id = id;
+                }
+
+            }
+
+            public class FindGroup : BaseCommand
+            {
+                public string GroupId = "";
+                public FindGroup(byte[] sessionId, string groupId)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.FindGroup;
+                   
+                    GroupId = groupId;
+                   
+                }
+            }
+            public class CreateGroup : BaseCommand
+            {
+                public string AdminId = "";
+                public string GroupId = "";
+                public string GroupName = "";
+                public string Description = "";
+
+                public CreateGroup(byte[] sessionId, string adminId, string groupId, string groupName, string description)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.CreateGroup;
+                    AdminId = adminId;
+                    GroupId = groupId;
+                    GroupName = groupName;
+                    Description = description;
+                }
+
+            }
+
         }
 
         public class DirectMessage : Message
-        {
-            public string targetLogin = String.Empty;
+        {/*{"targetLogin":"Admin"
+          * ,"senderLogin":""
+          * ,"sendingTime":"2022-04-06T18:43:34.595458+03:00"
+          * ,"message":"TextBox"
+          * ,"dataset":null
+          * ,"SessionId":"rgKzJoUapVXxUSEQ1/sc5A=="}*/
+            public string targetLogin;
+            [JsonConstructor]
+            public DirectMessage(string targetLogin, string senderLogin, DateTime sendingTime, string message, Dataset? dataset, byte[] sessionId)
+            {
+                this.SessionId = sessionId;
+                this.targetLogin = targetLogin;
+                this.senderLogin = senderLogin;
+                this.message = message;
+                this.sendingTime = DateTime.Now;
+                this.dataset = dataset;
+            }
+            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message)
+            {
+                this.SessionId = sessionId;
+                this.targetLogin = targetLogin;
+                this.senderLogin = senderLogin;
+                this.message = message;
+                this.sendingTime = DateTime.Now;
+                this.dataset = null;
+            }
+            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message, DateTime sendingTime, Dataset? dataset)
+            {
+                this.SessionId = sessionId;
+                this.targetLogin = targetLogin;
+                this.senderLogin = senderLogin;
+                this.message = message;
+                this.sendingTime = sendingTime;
+                this.dataset = dataset;
+            }
+
         }
 
         public class GroupMessage : Message
         {
-            public string groupId = String.Empty;
+            public string groupId;
+            public GroupMessage(byte[] sessionId, string groupId, string senderLogin,string message)
+            {
+                this.SessionId = sessionId;
+                this.groupId = groupId;
+                this.senderLogin = senderLogin;
+                this.sendingTime = DateTime.Now;
+                this.message = message;
+                this.dataset = null;
+            }
+            public GroupMessage(byte[] sessionId, string groupId, string senderLogin, DateTime sendingTime, string message, Dataset? dataset)
+            {
+                this.SessionId = sessionId;
+                this.groupId = groupId;
+                this.senderLogin = senderLogin;
+                this.sendingTime = sendingTime;
+                this.message = message;
+                this.dataset = dataset;
+            }
         }
 
         public class Dataset

@@ -20,9 +20,38 @@ namespace MessangerApp2._0
     /// </summary>
     public partial class FindUser : UserControl
     {
+        public delegate void CloseHandler();
+        public event CloseHandler OnClose;
         public FindUser()
         {
             InitializeComponent();
+            Grid.SetColumn(this, 0);
+            Grid.SetRow(this, 0);
+            Grid.SetColumnSpan(this, 3);
+            Grid.SetRowSpan(this, 2);
+        }
+        bool isUIBlocked = false;
+        public bool IsUIBlocked
+        {
+            get { return isUIBlocked; }
+            set
+            {
+                isUIBlocked = value;
+                mainButton.IsEnabled = !value;
+                userNameBox.IsEnabled = !value;
+            }
+        }
+        private void UserControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+                OnClose();
+        }
+
+        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point pt = e.GetPosition(MainBorder);
+            if (pt.X < 0 || pt.X > MainBorder.ActualWidth || pt.Y < 0 || pt.Y > MainBorder.ActualHeight)
+                OnClose();
         }
     }
 }

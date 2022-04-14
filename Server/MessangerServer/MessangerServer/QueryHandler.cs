@@ -11,46 +11,58 @@ namespace MessangerServer
             protocol = new(4);
         }
 
-        byte[] CommandHandler(Data.Command command)
+        byte[] CommandHandler(dynamic command)
         {
-            if ((command.type != Data.Command.CommandType.Connection && command.type != Data.Command.CommandType.Registration) && !dbClientData.CheckSession(command.SessionId))
-                return protocol.SerializeToByte(Data.StatusType.InvalidSessionId, Data.MessageType.Status);
 
-            switch (command.type)
+            if (command is not Data.Answer.Session && command is not Data.Command.Connection && command is not Data.Command.Registration)
+                if(!dbClientData.CheckSession(command.SessionId))
+                return protocol.SerializeToByte(Data.StatusType.InvalidSessionId, Data.MessageType.Status);
+           
+            switch (command)
             {
-                case Data.Command.CommandType.Connection:
-                    if (dbClientData.CheckPass(command.connection.Login, command.connection.Password))
-                        return protocol.SerializeToByte(dbClientData.AddSession(command.connection.Login), Data.MessageType.Answer);
+                case Data.Command.Registration registration:
+                    if (dbClientData.AddUser(registration))
+                    {
+                        return protocol.SerializeToByte(Data.StatusType.Authorized, Data.MessageType.Status);
+                    }
+                    else return protocol.SerializeToByte(Data.StatusType.UserExists, Data.MessageType.Status);
+
+                case Data.Command.Connection connection:
+                    if (dbClientData.CheckPass(connection.Login, connection.Password))
+                    {
+                        Data.Answer.Session session = dbClientData.AddSession(connection.Login);
+                        session.User = dbClientData.FindUser(connection.Login);
+                        return protocol.SerializeToByte(session, Data.MessageType.SessionId);
+                    }
                     else return protocol.SerializeToByte(Data.StatusType.AuthorizationDenied, Data.MessageType.Status);
 
-                case Data.Command.CommandType.Disconnection:
-                    dbClientData.DeleteSession(command.SessionId);
+                case Data.Command.Disconnection disconnection:
+                    dbClientData.DeleteSession(disconnection.SessionId);
                     return protocol.SerializeToByte(Data.StatusType.Ok, Data.MessageType.Status);
 
-                case Data.Command.CommandType.Registration:
-                    if (dbClientData.AddUser(command.registration))
-                        return protocol.SerializeToByte(dbClientData.AddSession(command.registration.Login), Data.MessageType.Answer);
-                    else return protocol.SerializeToByte(Data.StatusType.AuthorizationDenied, Data.MessageType.Status);
+                case Data.Command.FindUser findUser:               
+                    return protocol.SerializeToByte(dbClientData.FindUser(findUser.Id), Data.MessageType.User);
 
-                case Data.Command.CommandType.FindUsers:
-                    return protocol.SerializeToByte(dbClientData.FindUsers(command.findUser.Id), Data.MessageType.Answer);
+                case Data.Command.GetMessages getMessages:                   
+                    return protocol.SerializeToByte(dbClientData.GetMessages(getMessages.Id, getMessages.Start, getMessages.End), Data.MessageType.Messages);
 
-                case Data.Command.CommandType.GetMessages:
-                    return protocol.SerializeToByte(dbClientData.GetMessages(command.getMessages.Id, command.getMessages.Start, command.getMessages.End), Data.MessageType.Answer);
+                case Data.Command.GetFile getFile:
+                    return protocol.SerializeToByte(dbClientData.GetFile(getFile.Id), Data.MessageType.File);
 
-                case Data.Command.CommandType.GetFile:
-                    return protocol.SerializeToByte(dbClientData.GetFile(command.getFile.Id), Data.MessageType.Answer);
+                case Data.Answer.Session session:
+                    return protocol.SerializeToByte(dbClientData.CheckSession(session.SessionId)? dbClientData.FindUser(session.SessionId) : Data.StatusType.InvalidSessionId,Data.MessageType.User);
+                
+                case Data.Command.CreateGroup createGroup:
+                    return protocol.SerializeToByte(dbClientData.CreateGroup(createGroup)?Data.StatusType.GroupCreated:Data.StatusType.GroupExists, Data.MessageType.Status);
+
+                case Data.Command.FindGroup findGroup:
+                    return protocol.SerializeToByte(dbClientData.FindGroup(findGroup.GroupId), Data.MessageType.Group);
             }
             return protocol.SerializeToByte(Data.StatusType.Error, Data.MessageType.Status);
         }
         public byte[] Answer(dynamic query)
         {
-            
-            if (query is Data.Command command)
-            {
-                return CommandHandler(command);
-            }
-
+           
             if ((query is Data.DirectMessage || query is Data.GroupMessage))
             {
                 if (dbClientData.CheckSession(query.SessionId))
@@ -60,7 +72,9 @@ namespace MessangerServer
                 }
                 else return protocol.SerializeToByte(Data.StatusType.InvalidSessionId, Data.MessageType.Status);
             }
-            return protocol.SerializeToByte(Data.StatusType.Error, Data.MessageType.Status);
+            else
+                return CommandHandler(query);
+           
         }
 
     }

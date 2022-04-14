@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "Админ",
+    "Id": "Admin",
+    "Description": "",
+    "IsGroup": false,
+    "HasNewMessage": false
+  },
+  {
+    "Name": "Name",
+    "Id": "Login",
+    "Description": "",
+    "IsGroup": false,
+    "HasNewMessage": false
+  },
+  {
+    "Name": "Первая группа",
+    "Id": "Group1",
+    "Description": "Первая",
+    "IsGroup": true,
+    "HasNewMessage": true
+  }
+]

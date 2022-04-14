@@ -1,0 +1,13 @@
+{
+  "ClientInfo": {
+    "Id": "Login",
+    "Name": "Name",
+    "Description": ""
+  },
+  "IP": "192.168.1.101",
+  "PORT": 8080,
+  "LastMessageCheck": "2022-04-07T17:23:31.937144+03:00",
+  "SessionId": "N6ujpPjIIQdTM6+V9upq6Q==",
+  "MainColor": "#FF202020",
+  "AdditionalColor": "#FF2D2D2D"
+}

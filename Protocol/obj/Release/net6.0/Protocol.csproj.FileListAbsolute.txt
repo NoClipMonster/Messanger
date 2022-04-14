@@ -1,0 +1,14 @@
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Release\net6.0\Protocol.deps.json
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Release\net6.0\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Release\net6.0\Protocol.pdb
+C:\Users\iaved\Desktop\Messanger\Protocol\bin\Release\net6.0\Newtonsoft.Json.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.csproj.AssemblyReference.cache
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.AssemblyInfoInputs.cache
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.AssemblyInfo.cs
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.csproj.CoreCompileInputs.cache
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.csproj.CopyComplete
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\refint\Protocol.dll
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\Protocol.pdb
+C:\Users\iaved\Desktop\Messanger\Protocol\obj\Release\net6.0\ref\Protocol.dll
