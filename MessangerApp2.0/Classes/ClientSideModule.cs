@@ -1,7 +1,8 @@
 ﻿using Protocol;
 using System;
+using System.IO;
 using System.Net.Sockets;
-
+using System.Threading.Tasks;
 using System.Windows;
 using static Protocol.Data;
 
@@ -32,7 +33,7 @@ namespace MessangerApp2._0
             contacts = new();
         }
 
-       public  dynamic SendPackage(byte[] message)
+        dynamic SendPackage(byte[] message)
         {
             try
             {
@@ -74,83 +75,112 @@ namespace MessangerApp2._0
             catch (Exception ex)
             {
                 if (settings.ThrowExceptions)
-                     throw ex;
-                MessageBox.Show(ex.Message, "Не удалось отправить пакет данных");
-                if (client.Connected)
-                    client.Close();
+                    throw ex;
+                // MessageBox.Show(ex.Message, "Не удалось отправить пакет данных");
+                /* if (client.Connected)
+                     client.Close();*/
                 return Array.Empty<byte>();
             }
         }
-        
+
         public void CheckSession()
         {
 
-            if (settings.SessionId!=null && settings.SessionId.Length == 16)
+            Task.Run(() =>
             {
-                dynamic answer = SendPackage(protocol.SerializeToByte(new Answer.Session() { SessionId = settings.SessionId }, Data.MessageType.SessionId));
-                if (answer is Answer.User user)
+                if (settings.SessionId != null && settings.SessionId.Length == 16)
                 {
-                    settings.ClientInfo = user;
-                    OnAnswerReceived(StatusType.Ok);
+                    dynamic answer = SendPackage(protocol.SerializeToByte(new Answer.Session() { SessionId = settings.SessionId }, Data.MessageType.SessionId));
+
+                   if (answer is Answer.User us)
+                    {
+
+                        Application.Current.Dispatcher.Invoke((Action)delegate
+                        {
+                            settings.ClientInfo = us;
+                            OnAnswerReceived(StatusType.Ok);
+                        });
+                    }
                 }
-            }
-            else
-            {
-                settings.SessionId = Array.Empty<byte>();
-            }
+                else
+                {
+                    Application.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        OnAnswerReceived(StatusType.InvalidSessionId);
+                        settings.SessionId = Array.Empty<byte>();
+                    });
+                }
+            });
+
         }
 
         public void CheckForMessage(object? obj)
         {
-            try
+
+            Task.Run(() =>
             {
-                
-                if (Application.Current != null)
-                    Application.Current.Dispatcher.Invoke((Action)delegate
+                try
+                {
+                    DateTime dt = DateTime.Now;
+                    dynamic answer = SendPackage(protocol.SerializeToByte(new Command.GetMessages(SessionId, settings.ClientInfo.Id, settings.LastMessageRecieve, dt), MessageType.Command));
+                    if (answer is Answer.Message[] messages && messages.Length > 0)
                     {
-                        DateTime dt = DateTime.Now;
-                        dynamic answer = SendPackage(protocol.SerializeToByte(new Command.GetMessages(SessionId, settings.ClientInfo.Id, settings.LastMessageCheck, dt), MessageType.Command));
-                        if (answer is Answer.Message[] messages && messages.Length > 0)
+                        Application.Current.Dispatcher.Invoke((Action)delegate
                         {
-                            settings.LastMessageCheck = dt;
+                            settings.LastMessageRecieve = dt;
                             OnMessagesReceived(messages);
-                        }
-                    });
-            }
-            catch (Exception ex)
-            {
-                if (settings.ThrowExceptions)
-                    throw;
-            }
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                    if (settings.ThrowExceptions)
+                        throw;
+
+                }
+            });
+
 
         }
 
         public void Login(string login, string pass)
         {
-            try
+            Task.Run(() =>
             {
                 dynamic answer = SendPackage(protocol.SerializeToByte(new Command.Connection(login, pass), MessageType.Command));
-                if (answer is Data.Answer.Session session)
+                Application.Current.Dispatcher.Invoke((Action)delegate
                 {
-                    SessionId = session.SessionId;
-                    settings.SessionId = session.SessionId;
-                    if (session.User != null)
-                        settings.ClientInfo = session.User;
-                    OnAnswerReceived(Data.StatusType.Ok);
-                }
-                else if (answer is Data.StatusType)
-                {
-                    OnAnswerReceived(answer);
-                }
-                else OnAnswerReceived(Data.StatusType.Error);
-            }
-            catch (Exception ex)
-            {
-                if (settings.ThrowExceptions)
-                    throw ex;
-                MessageBox.Show(ex.Message);
-                OnAnswerReceived(Data.StatusType.Error);
-            }
+                    try
+                    {
+
+                        if (answer is Data.Answer.Session session)
+                        {
+                            SessionId = session.SessionId;
+                            settings.SessionId = session.SessionId;
+                            if (session.User != null)
+                                settings.ClientInfo = session.User;
+                            OnAnswerReceived(Data.StatusType.Ok);
+                        }
+                        else if (answer is Data.StatusType)
+                        {
+                            OnAnswerReceived(answer);
+                        }
+                        else OnAnswerReceived(Data.StatusType.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (settings.ThrowExceptions)
+                            throw ex;
+                        MessageBox.Show(ex.Message);
+                        OnAnswerReceived(Data.StatusType.Error);
+                    }
+                });
+            });
+
+
+
+
 
         }
 
@@ -158,93 +188,153 @@ namespace MessangerApp2._0
         {
             try
             {
+                Task.Run(() =>
+                {
+                    SendPackage(protocol.SerializeToByte(new Command.Disconnection(SessionId), MessageType.Command));
+                });
                 contacts.DeleteAll();
                 messages.DeleteAll();
                 settings.ClearUserData();
-                SendPackage(protocol.SerializeToByte(new Command.Disconnection(SessionId), MessageType.Command));
+
             }
             catch (Exception ex)
             {
-                if (settings.ThrowExceptions)
-                    throw ex;
-                MessageBox.Show(ex.Message);
-                OnAnswerReceived(Data.StatusType.Error);
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
+
+                    if (settings.ThrowExceptions)
+                        throw ex;
+                    MessageBox.Show(ex.Message);
+                    OnAnswerReceived(Data.StatusType.Error);
+                });
             }
         }
 
         public void Registration(string login, string pass, string name, string description = "")
         {
-            try
+            Task.Run(() =>
             {
                 dynamic answer = SendPackage(protocol.SerializeToByte(new Command.Registration(login, pass, name, description), MessageType.Command));
-
-                if (answer is Data.StatusType)
+                Application.Current.Dispatcher.Invoke((Action)delegate
                 {
-                    OnAnswerReceived(answer);
-                }
-                else OnAnswerReceived(Data.StatusType.Error);
-            }
-            catch (Exception ex)
-            {
-                if (settings.ThrowExceptions)
-                    throw ex;
-                MessageBox.Show(ex.Message);
-                OnAnswerReceived(Data.StatusType.Error);
-            }
+                    try
+                    {
+
+                        if (answer is Data.StatusType)
+                        {
+                            OnAnswerReceived(answer);
+                        }
+                        else OnAnswerReceived(Data.StatusType.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (settings.ThrowExceptions)
+                            throw ex;
+                        MessageBox.Show(ex.Message);
+                        OnAnswerReceived(Data.StatusType.Error);
+                    }
+                });
+            });
         }
 
-        public void SendMessage(string login, string text,bool isGroup)
+        public void SendMessage(string login, string text, bool isGroup, string FileId = "")
         {
-            try
+            Task.Run(() =>
             {
                 if (isGroup)
-                {
-                    SendPackage(protocol.SerializeToByte(new GroupMessage(SessionId, login, UserId, text), MessageType.GroupMessage));
-                }
+                    SendPackage(protocol.SerializeToByte(new GroupMessage(SessionId, login, UserId, text, FileId), MessageType.GroupMessage));
                 else
-                SendPackage(protocol.SerializeToByte(new DirectMessage(SessionId, login, UserId, text), MessageType.DirectMessage));
-                //CheckForMessage(null);
-            }
-            catch (Exception ex)
+                    SendPackage(protocol.SerializeToByte(new DirectMessage(SessionId, login, UserId, text, FileId), MessageType.DirectMessage));
+            });
+
+        }
+
+        public void FindUser(string UserId)
+        {
+            Task.Run(() =>
             {
-                if (settings.ThrowExceptions)
-                    throw ex;
-                MessageBox.Show(ex.Message);
-                OnAnswerReceived(Data.StatusType.Error);
-            }
+                dynamic Answer = SendPackage(protocol.SerializeToByte(new Command.FindUser(SessionId, UserId), MessageType.Command));
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    OnAnswerReceived(Answer);
+                });
+            });
         }
-
-        public dynamic FindUser(string UserId)
+        public Answer.User FindUserNow(string UserId)
         {
-            return SendPackage(protocol.SerializeToByte(new Command.FindUser(SessionId, UserId), MessageType.Command));
+            dynamic Answer = SendPackage(protocol.SerializeToByte(new Command.FindUser(SessionId, UserId), MessageType.Command));
+            return (Answer as Answer.User);
         }
 
-        public dynamic FindGroup(string UserId)
+        public void FindGroup(string GroupId)
         {
-            return SendPackage(protocol.SerializeToByte(new Command.FindGroup(SessionId, UserId), MessageType.Command));
+            Task.Run(() =>
+            {
+                dynamic Answer = SendPackage(protocol.SerializeToByte(new Command.FindGroup(SessionId, GroupId), MessageType.Command));
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    OnAnswerReceived(Answer);
+                });
+            });
         }
-
+        public Answer.Group FindGroupNow(string GroupId)
+        {
+            dynamic Answer = SendPackage(protocol.SerializeToByte(new Command.FindGroup(SessionId, GroupId), MessageType.Command));
+            return (Answer as Answer.Group);
+        }
         public void CreateGroup(string GroupId, string GroupName, string Description)
         {
-            try
+            Task.Run(() =>
             {
-                dynamic answer = SendPackage(protocol.SerializeToByte(new Command.CreateGroup(SessionId, UserId, GroupId, GroupName, Description), MessageType.Command));
-
-                if (answer is Data.StatusType)
+                try
                 {
-                    OnAnswerReceived(answer);
+                    dynamic answer = SendPackage(protocol.SerializeToByte(new Command.CreateGroup(SessionId, UserId, GroupId, GroupName, Description), MessageType.Command));
+
+                    if (answer is Data.StatusType)
+                    {
+                        Application.Current.Dispatcher.Invoke((Action)delegate
+                        {
+
+                            OnAnswerReceived(answer);
+                        });
+                    }
+                    else Application.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        OnAnswerReceived(Data.StatusType.Error);
+                    });
                 }
-                else OnAnswerReceived(Data.StatusType.Error);
-            }
-            catch (Exception ex)
-            {
-                if (settings.ThrowExceptions)
-                    throw ex;
-                MessageBox.Show(ex.Message);
-                OnAnswerReceived(Data.StatusType.Error);
-            }
+                catch (Exception ex)
+                {
+                    if (settings.ThrowExceptions)
+                        throw ex;
+                    MessageBox.Show(ex.Message); Application.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        OnAnswerReceived(Data.StatusType.Error);
+                    });
 
+                }
+            });
         }
+        public Answer.File GetFileNow(string FileId)
+        {
+            dynamic Answer = SendPackage(protocol.SerializeToByte(new Command.GetFile(SessionId, FileId), MessageType.Command));
+            return (Answer as Answer.File);
+        }
+        public string GetFileNameNow(string FileId)
+        {
+            var Answer = SendPackage(protocol.SerializeToByte(new Command.GetFileName(SessionId, FileId), MessageType.Command));
+            return Answer as string;
+        }
+        public string SendFileNow(string path)
+        {
+            string name = Path.GetFileName(path);
+            byte[] data = File.ReadAllBytes(path);
 
+            Command.SendFile sf = new(SessionId, name, data);
+            var vr = SendPackage(protocol.SerializeToByte(sf, MessageType.Command));
+            if (vr is string str && str.Length == 16)
+                return str;
+            else return "";
+        }
     }
 }

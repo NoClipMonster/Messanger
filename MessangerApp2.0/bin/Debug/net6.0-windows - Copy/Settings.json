@@ -1,0 +1,15 @@
+{
+  "ClientInfo": {
+    "Id": "test1",
+    "Name": "test1",
+    "Description": ""
+  },
+  "IP": "192.168.1.101",
+  "PORT": 8080,
+  "ThrowExceptions": false,
+  "LastMessageRecieve": "2022-04-18T22:10:08.6691093+03:00",
+  "SessionId": "qibcfQekjg+EhQmj10BHkw==",
+  "FilesPath": "Media",
+  "MainColor": "#FF202020",
+  "AdditionalColor": "#FF2D2D2D"
+}

@@ -5,5 +5,12 @@
     "Description": "",
     "IsGroup": false,
     "HasNewMessage": false
+  },
+  {
+    "Name": "Первая группа",
+    "Id": "Group1",
+    "Description": "Первая",
+    "IsGroup": true,
+    "HasNewMessage": false
   }
 ]

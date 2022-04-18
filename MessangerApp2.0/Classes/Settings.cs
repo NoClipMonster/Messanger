@@ -35,9 +35,11 @@ namespace MessangerApp2._0
 
             public bool ThrowExceptions = false;
 
-            public DateTime LastMessageCheck = DateTime.MinValue;
+            public DateTime LastMessageRecieve = DateTime.MinValue;
 
             public byte[] SessionId = Array.Empty<byte>();
+
+            public string FilesPath = "Media";
 
             public Brush MainColor = new SolidColorBrush(new Color() { R = 32, G = 32, B = 32, A = 255 });
 
@@ -45,23 +47,25 @@ namespace MessangerApp2._0
             public Data()
             {
             }
-            public Data(Protocol.Data.Answer.User clientInfo, string iP, int pORT,bool throwExceptions, DateTime lastMessageCheck, byte[] sessionId, Brush mainColor, Brush additionalColor)
+            public Data(Protocol.Data.Answer.User clientInfo, string iP, int pORT,bool throwExceptions, DateTime lastMessageRecieve, byte[] sessionId, Brush mainColor, Brush additionalColor, string filesPath)
             {
                 ClientInfo = clientInfo;
                 IP = iP;
                 PORT = pORT;
                 ThrowExceptions = throwExceptions;
-                LastMessageCheck = lastMessageCheck;
+                LastMessageRecieve = lastMessageRecieve;
                 SessionId = sessionId;
                 MainColor = mainColor;
                 AdditionalColor = additionalColor;
+                FilesPath = filesPath;
+
             }
 
         }
         public void ClearUserData()
         {
             loader.Data.ClientInfo = new();
-            loader.Data.LastMessageCheck = DateTime.MinValue;
+            loader.Data.LastMessageRecieve = DateTime.MinValue;
             loader.Data.SessionId = Array.Empty<byte>();
             loader.Save();
         }
@@ -85,10 +89,15 @@ namespace MessangerApp2._0
             get { return loader.Data.ThrowExceptions; }
             set { loader.Data.ThrowExceptions = value; loader.Save(); }
         }
-        public DateTime LastMessageCheck
+        public string FilesPath
         {
-            get { return loader.Data.LastMessageCheck; }
-            set { loader.Data.LastMessageCheck = value; loader.Save(); }
+            get { return loader.Data.FilesPath; }
+            set { loader.Data.FilesPath = value; loader.Save(); }
+        }
+        public DateTime LastMessageRecieve
+        {
+            get { return loader.Data.LastMessageRecieve; }
+            set { loader.Data.LastMessageRecieve = value; loader.Save(); }
         }
 
         public byte[] SessionId

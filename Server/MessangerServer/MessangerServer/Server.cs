@@ -147,29 +147,24 @@ namespace MessangerServer
                     e.Cancel = true;
                     return;
                 }
-                if (server.Pending())
+
+                try
                 {
-                    try
-                    {
-                        BackgroundWorker worker = new();
-                        worker.DoWork += Receive_Data_DoWork;
-                        worker.RunWorkerAsync(server.AcceptTcpClient());
-
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        if (sett.ThrowAnException)
-                        {
-                            throw ex;
-                        }
-                        else MyConsole.WriteLine(ex.Message, MsgType.Error);
-                        e.Cancel = true;
-                        return;
-                    }
+                    BackgroundWorker worker = new();
+                    worker.DoWork += Receive_Data_DoWork;
+                    worker.RunWorkerAsync(server.AcceptTcpClient());
                 }
-            }
+                catch (Exception ex)
+                {
+                    if (sett.ThrowAnException)
+                    {
+                        throw ex;
+                    }
+                    else MyConsole.WriteLine(ex.Message, MsgType.Error);
+                    e.Cancel = true;
+                }
 
+            }
         }
         private void WaitForNewData_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {

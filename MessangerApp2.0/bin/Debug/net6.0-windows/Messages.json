@@ -3,112 +3,48 @@
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "Date": "2022-04-14T20:32:42.317",
-    "Text": "TextBox",
-    "FileId": null
+    "Date": "2022-04-18T21:41:11.197",
+    "Text": "1234",
+    "FileId": ""
   },
   {
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "Date": "2022-04-14T20:33:26.447",
-    "Text": "TextBox",
-    "FileId": null
+    "Date": "2022-04-18T21:42:26.84",
+    "Text": "test.txt",
+    "FileId": "ª\u0014?\u000209Û1Àp?âã\nÇ>"
   },
   {
     "SenderID": "Login",
     "RecipientID": "Admin",
     "IsGroup": false,
-    "Date": "2022-04-14T20:33:45.663",
-    "Text": "TextBox",
-    "FileId": null
+    "Date": "2022-04-18T21:58:51.48",
+    "Text": "Информационное письмо_конференция_.pdf",
+    "FileId": "Õç3I1Õøë*\u0015 +¸?í{"
   },
   {
     "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:35:12.517",
-    "Text": "TextBox",
-    "FileId": null
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:06:22.447",
+    "Text": "123",
+    "FileId": ""
   },
   {
     "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:35:27.457",
-    "Text": "TextBox",
-    "FileId": null
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:06:26.947",
+    "Text": "test.txt",
+    "FileId": "­{\r>çÌ³C?ñ4ç¨=?d"
   },
   {
     "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:35:43.82",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:28.267",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:51.813",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:54.897",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:55.043",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:55.203",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:39:55.35",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:43:49.267",
-    "Text": "TextBox",
-    "FileId": null
-  },
-  {
-    "SenderID": "Login",
-    "RecipientID": "Admin",
-    "IsGroup": false,
-    "Date": "2022-04-14T20:45:20.87",
-    "Text": "TextBox",
-    "FileId": null
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:09:07.76",
+    "Text": "test.txt",
+    "FileId": "ró90¬¯\u0015üÖé!©,Û=,"
   }
 ]

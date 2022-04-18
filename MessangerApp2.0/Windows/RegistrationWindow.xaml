@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessangerApp2._0"
         mc:Ignorable="d"
-        Title="Textator" Height="500" Width="300">
-    <Grid Background="#FF212121">
+        Title="Textator" Height="500" Width="300" Background="#FF212121">
+    <Grid x:Name="MainGrid" Background="#FF212121">
         <Grid Margin="18,60,18,0" Height="182" VerticalAlignment="Top">
             <TextBox x:Name="LoginTB" HorizontalAlignment="Center" Margin="0,10,0,0" Text="Login" Width="230" Height="30" VerticalAlignment="Top" FontFamily="Arial" FontSize="18" Background="{x:Null}" Foreground="White" BorderBrush="#FF4B4B4C" TextAlignment="Left" MaxLines="1" TextDecorations="{x:Null}" Grid.ColumnSpan="2"/>
             <TextBox x:Name="PasswordTB" HorizontalAlignment="Center" Margin="0,50,0,0" Text="Password" VerticalAlignment="Top" Width="230" Height="30" FontFamily="Arial" FontSize="18" Background="{x:Null}" Foreground="White" BorderBrush="#FF4B4B4C" MaxLines="1" TextDecorations="{x:Null}" Grid.ColumnSpan="2"/>

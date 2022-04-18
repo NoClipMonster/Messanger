@@ -5,9 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MessangerApp2._0" VerticalAlignment="Top"
              >
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <TextBlock x:Name="MessageText" Margin="10,35,10,0" TextWrapping="Wrap" Text="Some text" IsEnabled="False" TextAlignment="Left" FontFamily="Arial" FontSize="16" Foreground="White" FlowDirection="RightToLeft" SizeChanged="MessageText_SizeChanged" Panel.ZIndex="1" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-        <Label x:Name="DateText" Content="Some date" Foreground="White" FontSize="16" FontFamily="Arial" Height="25" VerticalAlignment="Top" HorizontalContentAlignment="Left" Margin="5,5,5,0" HorizontalAlignment="Left" Panel.ZIndex="1"/>
+    <Grid x:Name="MsGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <TextBlock x:Name="MessageText" Margin="10,35,10
+                   ,0" TextWrapping="Wrap" Text="Some text" IsEnabled="False" TextAlignment="Left" FontFamily="Arial" FontSize="16" Foreground="White" FlowDirection="RightToLeft" SizeChanged="MessageText_SizeChanged" Panel.ZIndex="1" VerticalAlignment="Top"/>
+        <Label x:Name="DateText" Content="Some gty date" Foreground="White" FontSize="16" FontFamily="Arial" Height="29" VerticalAlignment="Top" HorizontalContentAlignment="Left" Margin="5,5,5,0" Panel.ZIndex="1"/>
 
         <Border x:Name="Border" CornerRadius="10" BorderThickness="1" Background="#FF23252B" VerticalAlignment="Center" Margin="0,0,0,0" HorizontalAlignment="Center" Width="2"/>
     </Grid>

@@ -22,17 +22,19 @@ namespace MessangerServer
 
         public bool CheckSession(byte[] sessionID)
         {
-           
-           // Task.Run(() => (activeSessions.Delete(aS => aS.LastActiveTime.AddDays(10) < DateTime.Now)));
-            var sessions = activeSessions.Where(s => s.SessionID == sessionID).FirstOrDefault();
-            if (sessions!=null && sessions.SessionID != Array.Empty<byte>())
+            // Task.Run(() => (activeSessions.Delete(aS => aS.LastActiveTime.AddDays(10) < DateTime.Now)));
+            var sessions = activeSessions.Where(s => s.SessionID == sessionID);
+            if (!sessions.Any())
+                return false;
+            var session = sessions.First();
+            if (session != null && session.SessionID != Array.Empty<byte>())
             {
-                if (sessions.LastActiveTime.AddDays(10) < DateTime.Now)
+                if (session.LastActiveTime.AddDays(2) < DateTime.Now)
                 {
                     activeSessions.Delete(s => s.SessionID == sessionID);
                     return false;
                 }
-                sessions.LastActiveTime = DateTime.Now;
+                session.LastActiveTime = DateTime.Now;
                 return true;
             }
             return false;
@@ -42,7 +44,10 @@ namespace MessangerServer
         {
             activeSessions.Delete(session => session.SessionID == id);
         }
-
+        public string GetUserIdBySessionId(byte[] id)
+        {
+            return activeSessions.Where(session => session.SessionID == id).FirstOrDefault().UserId;
+        }
         public Answer.Session AddSession(string UserId)
         {
             activeSessions.Delete(aS => aS.UserId == UserId); 
@@ -62,16 +67,31 @@ namespace MessangerServer
 
         ITable<File> files;
 
-        public Answer.File GetFile(int FileId)
+        public Answer.File GetFile(string FileId)
         {
-            File f = files.FirstOrDefault(f => f.Id == FileId);
+            File? f = files.FirstOrDefault(f => f.Id == FileId);
+            if (f == null)
+                return new();
             return new() { FileData = f.FileData, FileName = f.FileName, Id = ID };
         }
-        
-        public int AddFile(string Name, byte[] fileData)
+        public string GetFileName(string FileId)
         {
-            this.Insert(new File() { FileName = Name, FileData = fileData, Id = files.Count() });
-            return files.Count() - 1;
+            File? f = files.FirstOrDefault(f => f.Id == FileId);
+            if (f == null)
+                return "";
+            return f.FileName;
+        }
+
+        public string AddFile(string Name, byte[] fileData)
+        {
+            string fileId = "";
+            Random rand = new((int)DateTime.Now.Ticks);
+            for (int i = 0; i < 16; i++)
+            {
+                fileId+=(char)(rand.Next(0, 256));
+            }
+            this.Insert(new File() { FileName = Name, FileData = fileData,Id = fileId});
+            return fileId;
         }
 
         #endregion
@@ -96,7 +116,7 @@ namespace MessangerServer
 
         public Answer.Group FindGroup(string groupId)
         {
-            Group g = groups.FirstOrDefault(g => g.Id == groupId);
+            Group? g = groups.FirstOrDefault(g => g.Id == groupId);
            if (g == null)
             {
                 return new();
@@ -157,40 +177,42 @@ namespace MessangerServer
 
         public Answer.Message[] GetMessages(string userId, DateTime From, DateTime To)
         {
-            var ms = messages.Where(m => (m.SenderID == userId || m.RecipientID == userId) && m.Date.Between(From, To)).DefaultIfEmpty().ToArray();
-            List<Answer.Message> mesAnsw = new();
-            foreach (Message m in ms)
-                mesAnsw.Add(new() { Date = m.Date, RecipientID = m.RecipientID, FileId = m.FileId, IsGroup = m.IsGroup, SenderID = m.SenderID, Text = m.Text });
-            return mesAnsw.ToArray();
+
+            var groupIds = memberships.Select(m => m).Where(ms => (ms.UserId == userId)).Select(ms => ms.GroupId);
+            var ms = messages.Select(m => m).Where(m => (m.SenderID == userId || m.RecipientID == userId||groupIds.Contains(m.RecipientID)));
+            ms = ms.Where(m => m.Date.Between(From, To));
+            try
+            {
+            Message[] mss = ms.ToArray();
+                List<Answer.Message> mesAnsw = new();
+                foreach (Message m in mss)
+                    mesAnsw.Add(new() { Date = m.Date, RecipientID = m.RecipientID, FileId = m.FileId, IsGroup = m.IsGroup, SenderID = m.SenderID, Text = m.Text });
+                return mesAnsw.ToArray();
+            }
+            catch (Exception)
+            {
+                return Array.Empty<Answer.Message>();
+            }
+           
         }
 
-        public void AddMessage(string Sender, string Recipient, string message, DateTime date, bool isGroup = false, int? fileId = null) => this.Insert(new Message() { SenderID = Sender, RecipientID = Recipient, Text = message, Date = date, FileId = fileId, IsGroup = isGroup });
+        public void AddMessage(string Sender, string Recipient, string message, DateTime date, bool isGroup = false, string fileId = "") => this.Insert(new Message() { SenderID = Sender, RecipientID = Recipient, Text = message, Date = date, FileId = fileId, IsGroup = isGroup });
 
-        public void AddMessage(Protocol.Data.DirectMessage ms)
+        public void AddMessage(DirectMessage ms)
         {
-            int? fileID = null;
-            if (ms.dataset != null)
-            {
-                fileID = AddFile(ms.dataset.nameOfObject, ms.dataset.someObject);
-            }
-            AddMessage(ms.senderLogin, ms.targetLogin, ms.message, ms.sendingTime, false, fileID);
+            AddMessage(ms.senderLogin, ms.targetLogin, ms.message, ms.sendingTime, false, ms.fileId);
         }
 
-        public void AddMessage(Protocol.Data.GroupMessage ms)
-        {
-            int? fileID = null;
-            if (ms.dataset != null)
-            {
-                fileID = AddFile(ms.dataset.nameOfObject, ms.dataset.someObject);
-            }
-            AddMessage(ms.senderLogin, ms.groupId, ms.message, ms.sendingTime, true, fileID);
+        public void AddMessage(GroupMessage ms)
+        { 
+            AddMessage(ms.senderLogin, ms.groupId, ms.message, ms.sendingTime, true, ms.fileId);
         }
         #endregion
 
         #region Users
         ITable<User> users;
 
-        public bool AddUser(Protocol.Data.Command.Registration user)
+        public bool AddUser(Command.Registration user)
         {
             return AddUser(user.Login, user.Password, user.Name, user.Description);
         }
@@ -261,7 +283,7 @@ namespace MessangerServer
     public class File
     {
         [Column("Id")]
-        public int Id { get; set; } = -1;
+        public string Id { get; set; } = "";
 
         [Column("File")]
         public byte[] FileData { get; set; } = Array.Empty<byte>();
@@ -316,7 +338,7 @@ namespace MessangerServer
         public string Text { get; set; } = "";
 
         [Column("FileId")]
-        public int? FileId { get; set; } = -1;
+        public string FileId { get; set; } = "";
 
     }
 

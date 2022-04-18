@@ -47,7 +47,7 @@ namespace Protocol
 
                 public string Text { get; set; } = "";
 
-                public int? FileId { get; set; }
+                public string FileId { get; set; } = "";
 
             }
 
@@ -69,8 +69,8 @@ namespace Protocol
                 public int Level { get; set; } = 5;
             }
         }
-        public enum MessageType { DirectMessage, GroupMessage, Command, Status, SessionId, Users, User, Messages, File, Group, Groups };
-        public enum StatusType { Ok, AuthorizationDenied, UserExists, InvalidSessionId, Error, TimeOut, Authorized,GroupExists,GroupCreated };
+        public enum MessageType { DirectMessage, GroupMessage, Command, Status,FileId, FileName, SessionId, Users, User, Messages, File, Group, Groups };
+        public enum StatusType { Ok, AuthorizationDenied, UserExists, UserNOTExists, InvalidSessionId, Error, TimeOut, Authorized,GroupExists,GroupCreated, GroupNOTExists };
 
         //TODO: уточнить сериализацию
         public class BaseQuery
@@ -83,12 +83,12 @@ namespace Protocol
             public string senderLogin = String.Empty;
             public DateTime sendingTime = DateTime.Now;
             public string message = String.Empty;
-            public Dataset? dataset;
+            public string fileId = "";
         }
 
         public class Command
         {
-            public enum CommandType { Connection, Disconnection, Registration,FindUser, FindUsers, GetMessages, GetFile, CheckSession, CreateGroup,FindGroup }
+            public enum CommandType { Connection, Disconnection, Registration,FindUser, FindUsers, GetMessages, GetFile,SendFile, CheckSession, CreateGroup,FindGroup,GetFileName,SendMessage }
             public class BaseCommand : BaseQuery
             {
                 public CommandType commandType;
@@ -162,15 +162,38 @@ namespace Protocol
             }
             public class GetFile : BaseCommand
             {
-                public int Id;
+                public string Id;
 
-                public GetFile(byte[] sessionId, int id)
+                public GetFile(byte[] sessionId, string id)
                 {
                     SessionId = sessionId;
                     commandType = CommandType.GetFile;
                     Id = id;
                 }
+            }
+            public class SendFile : BaseCommand
+            {
+                public string FileName;
+                public byte[] FileData;
 
+                public SendFile(byte[] sessionId, string FileName, byte[] FileData)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.SendFile;
+                    this.FileName = FileName;
+                    this.FileData = FileData;
+                }
+            }
+            public class GetFileName : BaseCommand
+            {
+                public string Id;
+
+                public GetFileName(byte[] sessionId, string id)
+                {
+                    SessionId = sessionId;
+                    commandType = CommandType.GetFileName;
+                    Id = id;
+                }
             }
 
             public class FindGroup : BaseCommand
@@ -210,32 +233,32 @@ namespace Protocol
         {
             public string targetLogin;
             [JsonConstructor]
-            public DirectMessage(string targetLogin, string senderLogin, DateTime sendingTime, string message, Dataset? dataset, byte[] sessionId)
+            public DirectMessage(string targetLogin, string senderLogin, DateTime sendingTime, string message, string FileId , byte[] sessionId)
             {
                 this.SessionId = sessionId;
                 this.targetLogin = targetLogin;
                 this.senderLogin = senderLogin;
                 this.message = message;
                 this.sendingTime = DateTime.Now;
-                this.dataset = dataset;
+                this.fileId = FileId;
             }
-            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message)
+            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message, string FileId ="")
             {
                 this.SessionId = sessionId;
                 this.targetLogin = targetLogin;
                 this.senderLogin = senderLogin;
                 this.message = message;
                 this.sendingTime = DateTime.Now;
-                this.dataset = null;
+                this.fileId = FileId;
             }
-            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message, DateTime sendingTime, Dataset? dataset)
+            public DirectMessage(byte[] sessionId, string targetLogin, string senderLogin, string message, DateTime sendingTime, string FileId = "")
             {
                 this.SessionId = sessionId;
                 this.targetLogin = targetLogin;
                 this.senderLogin = senderLogin;
                 this.message = message;
                 this.sendingTime = sendingTime;
-                this.dataset = dataset;
+                this.fileId = FileId;
             }
 
         }
@@ -243,28 +266,28 @@ namespace Protocol
         public class GroupMessage : Message
         {
             public string groupId;
-            public GroupMessage(byte[] sessionId, string groupId, string senderLogin,string message)
+            public GroupMessage(byte[] sessionId, string groupId, string senderLogin, string message, string FileId = "")
             {
                 this.SessionId = sessionId;
                 this.groupId = groupId;
                 this.senderLogin = senderLogin;
                 this.sendingTime = DateTime.Now;
                 this.message = message;
-                this.dataset = null;
+                this.fileId = FileId;
             }
             [JsonConstructor]
-            public GroupMessage(byte[] sessionId, string groupId, string senderLogin, DateTime sendingTime, string message, Dataset? dataset)
+            public GroupMessage(byte[] sessionId, string groupId, string senderLogin, DateTime sendingTime, string message, string FileId = "")
             {
                 this.SessionId = sessionId;
                 this.groupId = groupId;
                 this.senderLogin = senderLogin;
                 this.sendingTime = sendingTime;
                 this.message = message;
-                this.dataset = dataset;
+                this.fileId = FileId;
             }
         }
 
-        public class Dataset
+      /*  public class Dataset
         {
             public BackgroundWorker fileWaiter;
             public Dataset(string path)
@@ -290,7 +313,7 @@ namespace Protocol
 
             public string nameOfObject = String.Empty;
 
-        }
+        }*/
 
     }
 

@@ -1,18 +1,20 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using static Protocol.Data;
 
 namespace MessangerApp2._0
 {
 
+    //TODO: Memberships,Файлы, групповые сообщения
 
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         ClientSideModule clientSideModule;
@@ -24,12 +26,12 @@ namespace MessangerApp2._0
         FindUser findUser;
         Controls.CreateGroup createGroup;
 
-        BlurEffect myBlur = new BlurEffect() { Radius = 6, KernelType = KernelType.Gaussian, RenderingBias = RenderingBias.Quality };
+        BlurEffect myBlur = new() { Radius = 0, KernelType = KernelType.Gaussian, RenderingBias = RenderingBias.Quality };
         Timer timer;
         public MainWindow(ClientSideModule clientSideModule)
         {
             InitializeComponent();
-
+            MainGrid.Effect = myBlur;
             this.clientSideModule = clientSideModule;
             contacts = new();
             chatGrids = new();
@@ -54,27 +56,57 @@ namespace MessangerApp2._0
                 ShowMessage(item, false);
             }
 
-            // timer = new Timer(new TimerCallback(clientSideModule.CheckForMessage), null, 0, 2000);
+            timer = new Timer(new TimerCallback(clientSideModule.CheckForMessage), null, 0, 250);
         }
 
         private void ClientSideModule_OnAnswerReceived(dynamic message)
         {
-
-            if (message is StatusType status)
+            switch (message)
             {
-                switch (status)
-                {
-                    case StatusType.GroupCreated:
-                        dynamic answer = clientSideModule.FindGroup(createGroup.IdBox.Text);
-                        if (answer is Answer.Group group)
-                            AddGroup(group);
-                        CreateGroup_OnClose();
-                        break;
-                    case StatusType.GroupExists:
-                        MessageBox.Show("Такая группа уже существует");
-                        break;
-                }
+                case StatusType status:
+                    switch (status)
+                    {
+                        case StatusType.InvalidSessionId:
+                            clientSideModule.Disconection();
+
+                            new RegistrationWindow().Show();
+                            Close();
+                            break;
+                        case StatusType.GroupCreated:
+                            MessageBox.Show("Группа успешно созданна");
+                            clientSideModule.FindGroup(createGroup.IdBox.Text);
+                            CreateGroup_OnClose();
+                            status.ToString();
+                            break;
+                        case StatusType.GroupExists:
+                            MessageBox.Show("Такая группа уже существует");
+                            break;
+                        case StatusType.GroupNOTExists:
+                            MessageBox.Show("Такая группа не существует");
+                            findUser.IsUIBlocked = false;
+                            break;
+                        case StatusType.UserNOTExists:
+                            MessageBox.Show("Такой человек не существует");
+                            findUser.IsUIBlocked = false;
+                            break;
+                    }
+                    break;
+
+                case Answer.Group group:
+                    findUser.IsUIBlocked = false;
+                    FindUser_OnClose();
+                    AddGroup(group);
+                    break;
+                case Answer.User user:
+                    findUser.IsUIBlocked = false;
+                    FindUser_OnClose();
+                    AddUser(user);
+                    break;
+
+                default:
+                    MessageBox.Show("Произошло что то странное: " + (message).ToString()); break;
             }
+
         }
 
         void SetColorTheme()
@@ -111,35 +143,15 @@ namespace MessangerApp2._0
         {
             findUser.IsUIBlocked = true;
             if ((bool)findUser.IsGroup.IsChecked)
-            {
-                dynamic answer = clientSideModule.FindGroup(findUser.userNameBox.Text);
-
-                if (answer is Answer.Group group && group.Id != "")
-                {
-                    AddGroup(group);
-
-                    FindUser_OnClose();
-                }
-                else MessageBox.Show("Группа не найдена");
-            }
+                clientSideModule.FindGroup(findUser.userNameBox.Text);
             else
-            {
-                dynamic answer = clientSideModule.FindUser(findUser.userNameBox.Text);
+                clientSideModule.FindUser(findUser.userNameBox.Text);
 
-                if (answer is Answer.User user && user.Id != "")
-                {
-                    AddUser(user);
-                    FindUser_OnClose();
-                }
-                else MessageBox.Show("Человек не найдена");
-            }
 
-            findUser.IsUIBlocked = false;
         }
 
         private void createGroupButton_Click(object sender, RoutedEventArgs e)
         {
-            createGroup.IsUIBlocked = true;
             clientSideModule.CreateGroup(createGroup.IdBox.Text, createGroup.NameBox.Text, createGroup.DescrBox.Text);
         }
 
@@ -147,23 +159,31 @@ namespace MessangerApp2._0
         {
             createGroup.Visibility = Visibility.Hidden;
             createGroup.IsUIBlocked = false;
-            MainGrid.Effect = null;
+            DoubleAnimation an = new() { From = 10, To = 0, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
         }
 
         private void FindUser_OnClose()
         {
             findUser.Visibility = Visibility.Hidden;
-
-            MainGrid.Effect = null;
+            DoubleAnimation an = new() { From = 10, To = 0, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
         }
-
         private void ClientSideModule_OnMessageReceived(dynamic message)
         {
             if (message is Answer.Message[] messages)
             {
                 clientSideModule.messages.Add(messages);
+
                 foreach (var item in messages)
                 {
+                    if (item.FileId != "")
+                    {
+                        if (!Directory.Exists(clientSideModule.settings.FilesPath))
+                            Directory.CreateDirectory(clientSideModule.settings.FilesPath);
+                        Answer.File file = clientSideModule.GetFileNow(item.FileId);
+                        File.WriteAllBytes(clientSideModule.settings.FilesPath + "\\" + file.FileName, file.FileData);
+                    }
                     ShowMessage(item);
                 }
             }
@@ -210,7 +230,6 @@ namespace MessangerApp2._0
             ContactUC contactUC = new(group, DateTime.Now);
             if (!contacts.TryAdd(group.Id, contactUC))
             {
-                contactUC = null;
                 return;
             }
             contactUC.OnMouseClick += ContactClicked;
@@ -233,6 +252,7 @@ namespace MessangerApp2._0
             {
                 return;
             }
+
             contactUC.OnMouseClick += ContactClicked;
             contactUC.newMessageIndicator.Visibility = HasNewMessage ? Visibility.Visible : Visibility.Hidden;
             ContactsGrid.Children.Add(contactUC);
@@ -241,27 +261,30 @@ namespace MessangerApp2._0
             chatGrids[user.Id].ColumnDefinitions.Add(new ColumnDefinition());
             chatGrids[user.Id].ColumnDefinitions.Add(new ColumnDefinition());
             contacts[user.Id].Position = int.MaxValue;
+
             PlaceUserOnTop(user.Id);
         }
         void ShowMessage(Answer.Message ms, bool IsNew = true)
         {
-            ShowMessage(ms.SenderID, ms.RecipientID, ms.Text, ms.Date, ms.IsGroup, IsNew);
+            ShowMessage(ms.SenderID, ms.RecipientID, ms.Text, ms.Date, ms.IsGroup, IsNew,ms.FileId);
         }
-        void ShowMessage(string SenderId, string RecipientId, string text, DateTime dateTime, bool isGroup, bool IsNew = true)
+        void ShowMessage(string SenderId, string RecipientId, string text, DateTime dateTime, bool isGroup, bool IsNew = true,string FileId = "")
         {
             if (isGroup)
             {
                 if (!contacts.ContainsKey(RecipientId))
                 {
-                    dynamic answer = clientSideModule.FindGroup(RecipientId);
-                    if (answer is Answer.Group group)
-                        AddGroup(group);
-
+                    AddGroup(clientSideModule.FindGroupNow(RecipientId));             
                 }
                 if (RecipientId != SelectedChat)
                     contacts[RecipientId].newMessageIndicator.Visibility = Visibility.Visible;
-
-                MessageControl message = new(text, dateTime, SenderId, SenderId == clientSideModule.UserId);
+                if (clientSideModule.settings.LastMessageRecieve < dateTime)
+                    clientSideModule.settings.LastMessageRecieve = dateTime;
+                MessageControl message = new(text, dateTime, SenderId, SenderId == clientSideModule.UserId,FileId);
+                if (FileId != null)
+                {
+                    message.OnFileOpenClick += Message_OnFileOpenClick;
+                }
                 double height = (chatGrids[RecipientId].Children.Count != 0) ? (chatGrids[RecipientId].Children[^1] as MessageControl).Margin.Top + (chatGrids[RecipientId].Children[^1] as MessageControl).ActualHeight : 0;
                 Thickness thickness = message.Margin;
                 thickness.Top = 20 + height;
@@ -281,7 +304,7 @@ namespace MessangerApp2._0
                         index = i;
                     }
                 }
-                Visibility = contacts[RecipientId].newMessageIndicator.Visibility;
+               // Visibility = contacts[RecipientId].newMessageIndicator.Visibility;
                 contacts[RecipientId].ChangeMessage(text, dateTime);
                 if (!IsNew)
                     contacts[RecipientId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
@@ -299,15 +322,17 @@ namespace MessangerApp2._0
                     notCurentUser = SenderId;
                 if (!contacts.ContainsKey(notCurentUser))
                 {
-                    dynamic answer = clientSideModule.FindUser(notCurentUser);
-                    if (answer is Answer.User user)
-                        AddUser(user);
+                    AddUser(clientSideModule.FindUserNow(notCurentUser));
                 }
 
                 if (notCurentUser != SelectedChat)
                     contacts[notCurentUser].newMessageIndicator.Visibility = Visibility.Visible;
                 bool isCurentUserSender = SenderId == clientSideModule.UserId;
-                MessageControl message = new(text, dateTime, SenderId, isCurentUserSender);
+                MessageControl message = new(text, dateTime, SenderId, isCurentUserSender, FileId);
+                if (FileId != null)
+                {
+                    message.OnFileOpenClick += Message_OnFileOpenClick;
+                }
                 double height = (chatGrids[notCurentUser].Children.Count != 0) ? (chatGrids[notCurentUser].Children[^1] as MessageControl).Margin.Top + (chatGrids[notCurentUser].Children[^1] as MessageControl).ActualHeight : 0;
                 Thickness thickness = message.Margin;
                 thickness.Top = 20 + height;
@@ -330,7 +355,7 @@ namespace MessangerApp2._0
 
                 if (isCurentUserSender)
                 {
-                    Visibility = contacts[RecipientId].newMessageIndicator.Visibility;
+
                     contacts[RecipientId].ChangeMessage(text, dateTime);
                     if (!IsNew)
                         contacts[RecipientId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
@@ -341,7 +366,7 @@ namespace MessangerApp2._0
                 }
                 else
                 {
-                    Visibility = contacts[SenderId].newMessageIndicator.Visibility;
+
                     contacts[SenderId].ChangeMessage(text, dateTime);
                     if (!IsNew)
                         contacts[SenderId].newMessageIndicator.Visibility = clientSideModule.contacts.GetNewMessage(RecipientId) ? Visibility.Visible : Visibility.Hidden;
@@ -353,6 +378,24 @@ namespace MessangerApp2._0
 
             MessageScroller.ScrollToBottom();
         }
+
+        private void Message_OnFileOpenClick(string FileId)
+        {
+            if (FileId == "")
+                return;
+            string path = clientSideModule.settings.FilesPath;
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+           
+            string FileName = clientSideModule.GetFileNameNow(FileId);
+            if (!File.Exists(path + "\\" + FileName))
+            {
+                Answer.File file = clientSideModule.GetFileNow(FileId);
+                File.WriteAllBytes(path + "\\" + file.FileName, file.FileData);
+            }
+            Process.Start(new ProcessStartInfo("explorer.exe", " /select, " + path + "\\" + FileName));
+        }
+
 
         private void SendButtonClick(object sender, RoutedEventArgs e)
         {
@@ -379,7 +422,8 @@ namespace MessangerApp2._0
         private void FindSomeOne_Click(object sender, RoutedEventArgs e)
         {
             findUser.Visibility = Visibility.Visible;
-            MainGrid.Effect = myBlur;
+            DoubleAnimation an = new() { From = 0, To = 10, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
             findUser.userNameBox.Focus();
         }
 
@@ -389,12 +433,17 @@ namespace MessangerApp2._0
             isExpandedUsersColumn = isExpanded;
             if (isExpanded)
             {
-                FirstColumnDef.Width = new(330);
+                GridLengthAnimation col = new() { From = FirstColumnDef.Width, To = new GridLength(330), Duration = TimeSpan.FromSeconds(0.25) };
+                FirstColumnDef.BeginAnimation(ColumnDefinition.WidthProperty, col);
+
                 UsersButton.Content = "ᐊ";
             }
             else
             {
-                FirstColumnDef.Width = new(30);
+                GridLengthAnimation col = new() { From = FirstColumnDef.Width, To = new GridLength(30), Duration = TimeSpan.FromSeconds(0.25) };
+
+                FirstColumnDef.BeginAnimation(ColumnDefinition.WidthProperty, col);
+
                 UsersButton.Content = "ᐅ";
             }
         }
@@ -407,8 +456,14 @@ namespace MessangerApp2._0
             {
                 Thickness thic = MenuGrid.Margin;
                 thic.Left = 0;
-                MenuGrid.Margin = thic;
-                MainGrid.Effect = myBlur;
+
+                ThicknessAnimation col = new() { From = MenuGrid.Margin, To = thic, Duration = TimeSpan.FromSeconds(0.25) };
+                MenuGrid.BeginAnimation(Grid.MarginProperty, col);
+
+
+                DoubleAnimation an = new() { From = 0, To = 10, Duration = TimeSpan.FromSeconds(0.25) };
+                (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
+
                 HeadGrid.PreviewMouseDown += HeadGrid_PreviewMouseDown;
                 HeadGrid.KeyDown += HeadGrid_KeyDown;
             }
@@ -416,8 +471,13 @@ namespace MessangerApp2._0
             {
                 Thickness thic = MenuGrid.Margin;
                 thic.Left = -MenuGrid.Width;
-                MenuGrid.Margin = thic;
-                MainGrid.Effect = null;
+
+                ThicknessAnimation col = new() { From = MenuGrid.Margin, To = thic, Duration = TimeSpan.FromSeconds(0.25) };
+                MenuGrid.BeginAnimation(Grid.MarginProperty, col);
+
+                DoubleAnimation an = new() { From = 10, To = 0, Duration = TimeSpan.FromSeconds(0.25) };
+                (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
+
                 HeadGrid.PreviewMouseDown -= HeadGrid_PreviewMouseDown;
                 HeadGrid.KeyDown -= HeadGrid_KeyDown;
             }
@@ -467,7 +527,7 @@ namespace MessangerApp2._0
         {
             clientSideModule.contacts.DeleteAll();
             clientSideModule.messages.DeleteAll();
-            clientSideModule.settings.LastMessageCheck = DateTime.MinValue;
+            clientSideModule.settings.LastMessageRecieve = DateTime.MinValue;
             ContactsGrid.Children.Clear();
             MessageScroller.Content = null;
             contacts.Clear();
@@ -477,8 +537,85 @@ namespace MessangerApp2._0
         private void CreateGroup_Click(object sender, RoutedEventArgs e)
         {
             createGroup.Visibility = Visibility.Visible;
-            MainGrid.Effect = myBlur;
+            DoubleAnimation an = new() { From = 0, To = 10, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
             createGroup.IdBox.Focus();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new();
+           if((bool)ofd.ShowDialog())
+            {
+                string FileId= clientSideModule.SendFileNow(ofd.FileName);
+                clientSideModule.SendMessage(SelectedChat, ofd.SafeFileName, contacts[SelectedChat].isGroup, FileId);
+            }
+        }
+
+        private void GetFirstFile_Click(object sender, RoutedEventArgs e)
+        {
+           /* string path = clientSideModule.settings.FilesPath;
+            Answer.File file = clientSideModule.GetFileNow(0);
+            if(!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            File.WriteAllBytes(path + "\\" + file.FileName, file.FileData);
+            Process.Start(new ProcessStartInfo("explorer.exe", " /select, " + path + "\\" + file.FileName));*/
+            /* if (!File.Exists(path + "\\" + FileName))
+             {
+                 Answer.File file = clientSideModule.GetFileNow(FileId);
+                 File.WriteAllBytes(path + "\\" + file.FileName, file.FileData);
+             }
+             */
+        }
+    }
+    public class GridLengthAnimation : AnimationTimeline
+    {
+        public GridLengthAnimation()
+        {
+            // no-op
+        }
+
+        public GridLength From
+        {
+            get { return (GridLength)GetValue(FromProperty); }
+            set { SetValue(FromProperty, value); }
+        }
+
+        public static readonly DependencyProperty FromProperty =
+          DependencyProperty.Register("From", typeof(GridLength), typeof(GridLengthAnimation));
+
+        public GridLength To
+        {
+            get { return (GridLength)GetValue(ToProperty); }
+            set { SetValue(ToProperty, value); }
+        }
+
+        public static readonly DependencyProperty ToProperty =
+            DependencyProperty.Register("To", typeof(GridLength), typeof(GridLengthAnimation));
+
+        public override Type TargetPropertyType
+        {
+            get { return typeof(GridLength); }
+        }
+
+        protected override Freezable CreateInstanceCore()
+        {
+            return new GridLengthAnimation();
+        }
+
+        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)
+        {
+            double fromValue = this.From.Value;
+            double toValue = this.To.Value;
+
+            if (fromValue > toValue)
+            {
+                return new GridLength((1 - animationClock.CurrentProgress.Value) * (fromValue - toValue) + toValue, this.To.IsStar ? GridUnitType.Star : GridUnitType.Pixel);
+            }
+            else
+            {
+                return new GridLength((animationClock.CurrentProgress.Value) * (toValue - fromValue) + fromValue, this.To.IsStar ? GridUnitType.Star : GridUnitType.Pixel);
+            }
         }
     }
 }

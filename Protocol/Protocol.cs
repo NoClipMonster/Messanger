@@ -77,12 +77,10 @@ namespace Protocol
             if (Data == null)
                 return Array.Empty<byte>();
             byte[] bufByteData;
-            Dataset? dataset = null;
 
           
             bufByteData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(Data));
-            if (messageType == MessageType.DirectMessage || messageType == MessageType.GroupMessage || messageType == MessageType.File)
-                dataset = Data.dataset;
+           
             byte[] byteData;
             if(messageType == MessageType.Command)
             {
@@ -111,11 +109,6 @@ namespace Protocol
 
             byte[] message = new byte[size.Length + byteData.Length];
             size.CopyTo(message, 0);
-            if (dataset != null)
-            {
-                while (dataset.fileWaiter.IsBusy)
-                { };
-            }
 
             byteData.CopyTo(message, size.Length);
             return message;
@@ -151,6 +144,10 @@ namespace Protocol
                                 return JsonConvert.DeserializeObject<Command.GetMessages>(str);
                             case Command.CommandType.GetFile:
                                 return JsonConvert.DeserializeObject<Command.GetFile>(str);
+                            case Command.CommandType.GetFileName:
+                                return JsonConvert.DeserializeObject<Command.GetFileName>(str);
+                            case Command.CommandType.SendFile:
+                                return JsonConvert.DeserializeObject<Command.SendFile>(str);
                             case Command.CommandType.CheckSession:
                                 return JsonConvert.DeserializeObject<byte[]>(str);
                             case Command.CommandType.CreateGroup:
@@ -169,6 +166,10 @@ namespace Protocol
                         return JsonConvert.DeserializeObject<Answer.User[]>(str);
                     case MessageType.Messages:
                         return JsonConvert.DeserializeObject<Answer.Message[]>(str);
+                    case MessageType.FileId:
+                        return JsonConvert.DeserializeObject<string>(str);
+                    case MessageType.FileName:
+                        return JsonConvert.DeserializeObject<string>(str);
                     case MessageType.File:
                         return JsonConvert.DeserializeObject<Answer.File>(str);
                     case MessageType.Group:

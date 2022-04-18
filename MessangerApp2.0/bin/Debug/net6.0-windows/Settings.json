@@ -7,8 +7,9 @@
   "IP": "192.168.1.101",
   "PORT": 8080,
   "ThrowExceptions": false,
-  "LastMessageCheck": "2022-04-14T20:45:22.3834297+03:00",
-  "SessionId": "lG+VD521GGmaiqY4RSAVlQ==",
+  "LastMessageRecieve": "2022-04-18T22:09:07.8971654+03:00",
+  "SessionId": "cbbvD3TiLqiMdI0OXkwOtw==",
+  "FilesPath": "Media",
   "MainColor": "#FF202020",
   "AdditionalColor": "#FF2D2D2D"
 }

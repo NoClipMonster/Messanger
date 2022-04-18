@@ -27,7 +27,7 @@
                         <SolidColorBrush Color="White" Opacity="0"/>
                     </TextBox.Background>
                 </TextBox>
-                <Button Content="Button" HorizontalAlignment="Left" Width="50" Height="50" VerticalAlignment="Center"/>
+                <Button Content="Button" HorizontalAlignment="Left" Width="50" Height="50" VerticalAlignment="Center" Click="Button_Click"/>
                 <Button Content="Button" HorizontalAlignment="Right" Width="50" Height="50" VerticalAlignment="Center" Click="SendButtonClick"/>
             </Grid>
 
@@ -50,6 +50,7 @@
             <Button x:Name="ExitButton"  Content="Выход" Margin="65,0,65,10" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" FontSize="36" Height="66" VerticalAlignment="Bottom" Click="ExitButton_Click"/>
             <Button x:Name="CheFMesButton"  Content="Проверить новые сообщения" Margin="10,10,10,0" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" Height="66" VerticalAlignment="Top" Click="CheFMesButton_Click" FontSize="20"/>
             <Button x:Name="ClearAllMsgButton"  Content="Очистить историю" Margin="10,81,10,0" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" Height="66" VerticalAlignment="Top" Click="ClearAllMsgButton_Click" FontSize="20"/>
+            <Button x:Name="GetFirstFile"  Content="Получить первый файл" Margin="10,152,10,0" Background="{x:Null}" Foreground="White" BorderBrush="#FF5D5D5D" Height="66" VerticalAlignment="Top" FontSize="20" Click="GetFirstFile_Click"/>
         </Grid>
     </Grid>
 </Window>

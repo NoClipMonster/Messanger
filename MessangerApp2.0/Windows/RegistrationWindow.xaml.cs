@@ -1,7 +1,10 @@
 ﻿using Protocol;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using static Protocol.Data;
 
 namespace MessangerApp2._0
@@ -12,26 +15,35 @@ namespace MessangerApp2._0
     public partial class RegistrationWindow : Window
     {
         ClientSideModule clientSideModule;
+        BlurEffect myBlur = new() { Radius = 5, KernelType = KernelType.Gaussian, RenderingBias = RenderingBias.Quality };
         public RegistrationWindow()
         {
             clientSideModule = new ClientSideModule();
             clientSideModule.OnAnswerReceived += ClientSideModule_OnAnswerReceived;
-            clientSideModule.CheckSession();
             InitializeComponent();
+            MainGrid.Effect = myBlur;
+            clientSideModule.CheckSession();
+            RegBT.IsEnabled = false;
+            LoginBT.IsEnabled = false;
         }
 
         private void ClientSideModule_OnAnswerReceived(dynamic message)
         {
             
+
             if (message is Data.StatusType status)
             {
+                DoubleAnimation an = new() { From = 5, To = 0, Duration = TimeSpan.FromSeconds(0.25) };
+                (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
+                RegBT.IsEnabled = true;
+                LoginBT.IsEnabled = true;
                 switch (status)
                 {
                     case Data.StatusType.Authorized:
                         MessageBox.Show("Регистрация прошла успешно.");
                         break;
                     case Data.StatusType.Ok:
-                       
+                        clientSideModule.OnAnswerReceived-= ClientSideModule_OnAnswerReceived;
                         new MainWindow(clientSideModule).Show();
                         Close();
                         break;
@@ -46,10 +58,10 @@ namespace MessangerApp2._0
                         break;
                 }
                
-            }
+            }else
+            MessageBox.Show("Произошло что то странное: " + (message).ToString());
 
 
-            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -57,8 +69,8 @@ namespace MessangerApp2._0
             RegBT.IsEnabled = false;
             LoginBT.IsEnabled = false;
             clientSideModule.Login(LoginTB.Text, PasswordTB.Text);
-            RegBT.IsEnabled = true;
-            LoginBT.IsEnabled = true;
+            DoubleAnimation an = new() { From = 0, To = 5, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
         }
 
 
@@ -68,8 +80,8 @@ namespace MessangerApp2._0
             RegBT.IsEnabled = false;
             LoginBT.IsEnabled = false;
             clientSideModule.Registration(regLoginTB.Text, regPasswordTB.Text,regNameTB.Text,"");
-            RegBT.IsEnabled = true;
-            LoginBT.IsEnabled = true;
+            DoubleAnimation an = new() { From = 0, To = 5, Duration = TimeSpan.FromSeconds(0.25) };
+            (MainGrid.Effect as BlurEffect).BeginAnimation(BlurEffect.RadiusProperty, an);
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)

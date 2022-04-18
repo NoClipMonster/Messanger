@@ -1,0 +1,26 @@
+[
+  {
+    "SenderID": "Login",
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:06:22.447",
+    "Text": "123",
+    "FileId": ""
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:06:26.947",
+    "Text": "test.txt",
+    "FileId": "­{\r>çÌ³C?ñ4ç¨=?d"
+  },
+  {
+    "SenderID": "Login",
+    "RecipientID": "Group1",
+    "IsGroup": true,
+    "Date": "2022-04-18T22:09:07.76",
+    "Text": "test.txt",
+    "FileId": "ró90¬¯\u0015üÖé!©,Û=,"
+  }
+]
