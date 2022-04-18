@@ -6,7 +6,7 @@ namespace MessangerServer
 {
     public class DbClientData : LinqToDB.Data.DataConnection
     {
-        const string str = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\iaved\Desktop\Messanger\Server\myClientBase.mdf;Integrated Security=True;Connect Timeout=30";
+        const string str = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\iaved\Desktop\Messanger\Server\myClientBase.mdf;Integrated Security=True;MultipleActiveResultSets=true;Connect Timeout=500";
         public DbClientData() : base(ProviderName.SqlServer2012, str)
         {
             activeSessions = GetTable<ActiveSession>();
